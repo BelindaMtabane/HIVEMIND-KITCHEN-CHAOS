@@ -1,359 +1,360 @@
 
-// HIVEMIND: Kitchen Harmony
-// Main game state and resource management
+/* HIVEMIND: Kitchen Harmony
+   Main game controller, resources, saving and startup.
+*/
 
-window.gameState = {
-    money: 500,
-    ingredients: 100,
-    reputation: 50,
-    day: 1,
-    level: 1,
-    time: 8 * 60,
+(() => {
+    "use strict";
 
-    // *** CHANGED: The game starts with six staff members.
-    staff: 6,
+    const SAVE_KEY = "hivemindKitchenSave";
 
-    customersServed: 0,
-    ordersCompleted: 0,
-
-    customersArrived: 0,
-    customersTarget: 0,
-    customersRemaining: 0,
-    conversationsCompleted: 0,
-
-    kitchen: {
-        stove: 0,
-        fridge: 0,
-        prep: 0
-    }
-};
-
-const gameState = window.gameState;
-
-// *** NEW: Track whether the player has entered gameplay.
-window.gameStarted = false;
-
-
-// Update all existing resource displays.
-function updateResources() {
-    const values = {
-        money: gameState.money,
-        ingredients: gameState.ingredients,
-        reputation: gameState.reputation,
-        staff: gameState.staff,
-        day: gameState.day,
-        level: gameState.level
-    };
-
-    Object.entries(values).forEach(([key, value]) => {
-        document.querySelectorAll(
-            `[data-resource="${key}"], #${key}, #${key}-value`
-        ).forEach(element => {
-            element.textContent = value;
-        });
-    });
-
-    document.querySelectorAll(
-        '[data-resource-bar="reputation"]'
-    ).forEach(bar => {
-        bar.style.width = `${gameState.reputation}%`;
-    });
-
-    updateCustomerProgressDisplay();
-}
-
-
-// Update customer counters wherever they appear.
-function updateCustomerProgressDisplay() {
-    const arrived = Number(gameState.customersArrived) || 0;
-    const target = Number(gameState.customersTarget) || 0;
-    const remaining = Math.max(0, target - arrived);
-
-    const displays = {
-        "customer-count": arrived,
-        "customers-arrived": arrived,
-        "customer-target": target,
-        "customers-target": target,
-        "customers-remaining": remaining,
-        "conversations-completed": gameState.conversationsCompleted || 0,
-        "orders-completed": gameState.ordersCompleted || 0
-    };
-
-    Object.entries(displays).forEach(([id, value]) => {
-        const element = document.getElementById(id);
-        if (element) element.textContent = value;
-    });
-
-    document.querySelectorAll("[data-customer-count]").forEach(element => {
-        element.textContent = arrived;
-    });
-
-    document.querySelectorAll("[data-customer-target]").forEach(element => {
-        element.textContent = target;
-    });
-
-    document.querySelectorAll("[data-customer-remaining]").forEach(element => {
-        element.textContent = remaining;
-    });
-
-    document.querySelectorAll("[data-customer-progress]").forEach(element => {
-        element.style.width = `${target > 0
-            ? Math.min(100, arrived / target * 100)
-            : 0}%`;
-    });
-
-    if (typeof window.updateCustomerDashboard === "function") {
-        window.updateCustomerDashboard();
-    }
-}
-
-
-// Save game.
-function saveGame() {
-    try {
-        localStorage.setItem(
-            "hivemindKitchenSave",
-            JSON.stringify(gameState)
-        );
-    } catch (error) {
-        console.error("Save failed:", error);
-    }
-}
-
-
-// Load game.
-function loadGame() {
-    try {
-        const savedData = localStorage.getItem("hivemindKitchenSave");
-
-        if (!savedData) return false;
-
-        const savedState = JSON.parse(savedData);
-
-        Object.assign(gameState, savedState);
-
-        gameState.level = Math.max(1, Number(gameState.level) || 1);
-
-        // *** CHANGED: Migrate older saves to the six-person starting team.
-        gameState.staff = Math.max(6, Number(gameState.staff) || 6);
-
-        gameState.money = Math.max(0, Number(gameState.money) || 0);
-        gameState.ingredients = Math.max(0, Number(gameState.ingredients) || 0);
-        gameState.reputation = Math.max(0, Math.min(100, Number(gameState.reputation) || 0));
-
-        gameState.customersArrived = Number(gameState.customersArrived) || 0;
-        gameState.customersTarget = Number(gameState.customersTarget) || 0;
-        gameState.customersRemaining = Number(gameState.customersRemaining) || 0;
-
-        gameState.conversationsCompleted =
-            Number(gameState.conversationsCompleted) || 0;
-
-        gameState.kitchen = {
-            stove: 0,
-            fridge: 0,
-            prep: 0,
-            ...(savedState.kitchen || {})
-        };
-
-        console.log("Game loaded successfully.");
-        return true;
-
-    } catch (error) {
-        console.error("Load failed:", error);
-        return false;
-    }
-}
-
-
-// Reset the game.
-function resetGame() {
-    if (typeof window.stopCustomerLevel === "function") {
-        window.stopCustomerLevel();
-    }
-
-    localStorage.removeItem("hivemindKitchenSave");
-
-    Object.assign(gameState, {
+    const DEFAULT_STATE = {
         money: 500,
         ingredients: 100,
         reputation: 50,
         day: 1,
         level: 1,
-        time: 8 * 60,
-
-        // *** CHANGED: Fresh games begin with six staff.
+        time: 480,
         staff: 6,
-
         customersServed: 0,
         ordersCompleted: 0,
-        customersArrived: 0,
-        customersTarget: 0,
-        customersRemaining: 0,
-        conversationsCompleted: 0,
-
         kitchen: {
             stove: 0,
             fridge: 0,
             prep: 0
         }
-    });
+    };
 
-    updateResources();
-    saveGame();
+    window.gameState = { ...DEFAULT_STATE };
 
-    if (typeof window.startCustomerLevel === "function") {
-        window.startCustomerLevel(1);
+    let gameStarted = false;
+    let systemsInitialised = false;
+
+    function cloneDefaultState() {
+        return JSON.parse(JSON.stringify(DEFAULT_STATE));
     }
 
-    console.log("New game started!");
-}
+    function updateResources() {
+        const state = window.gameState;
 
+        const values = {
+            money: state.money,
+            ingredients: state.ingredients,
+            reputation: state.reputation,
+            day: state.day,
+            level: state.level,
+            staff: state.staff
+        };
 
-// Resource functions.
-function changeMoney(amount) {
-    gameState.money = Math.max(0, gameState.money + amount);
-    updateResources();
-    saveGame();
-}
+        const selectors = {
+            money: [
+                "#money", "#money-display", "#player-money",
+                "#cash-display"
+            ],
+            ingredients: [
+                "#ingredients", "#ingredients-display",
+                "#ingredient-count"
+            ],
+            reputation: [
+                "#reputation", "#reputation-display"
+            ],
+            day: ["#day", "#day-display", "#current-day"],
+            level: ["#level", "#level-display"],
+            staff: ["#staff-count", "#staff-display"]
+        };
 
+        Object.entries(values).forEach(([key, value]) => {
+            const element = selectors[key]
+                .map(selector => document.querySelector(selector))
+                .find(Boolean);
 
-function changeIngredients(amount) {
-    gameState.ingredients = Math.max(
-        0,
-        gameState.ingredients + amount
-    );
+            if (element) {
+                element.textContent = value;
+            }
+        });
 
-    updateResources();
-    saveGame();
-}
-
-
-function changeReputation(amount) {
-    gameState.reputation = Math.max(
-        0,
-        Math.min(100, gameState.reputation + amount)
-    );
-
-    updateResources();
-    saveGame();
-}
-
-
-// Advance to the next level.
-function advanceLevel() {
-    gameState.level++;
-    gameState.customersArrived = 0;
-    gameState.customersTarget = 0;
-    gameState.customersRemaining = 0;
-    gameState.conversationsCompleted = 0;
-
-    updateResources();
-    saveGame();
-
-    if (typeof window.startCustomerLevel === "function") {
-        window.startCustomerLevel(gameState.level);
-    }
-}
-
-
-// *** NEW: Enter the game from the main menu.
-function startHivemindGame() {
-    if (window.gameStarted) return;
-
-    window.gameStarted = true;
-
-    const menu = document.getElementById("main-menu");
-    const game = document.getElementById("game");
-
-    if (menu) menu.hidden = true;
-    if (game) game.hidden = false;
-
-    updateResources();
-
-    if (typeof window.startCustomerLevel === "function") {
-        window.startCustomerLevel(gameState.level);
+        window.dispatchEvent(
+            new CustomEvent("hivemind:resources-updated", {
+                detail: { ...state }
+            })
+        );
     }
 
-    console.log("HIVEMIND: Kitchen Harmony gameplay started.");
-}
+    function saveGame() {
+        try {
+            localStorage.setItem(
+                SAVE_KEY,
+                JSON.stringify(window.gameState)
+            );
 
+            window.dispatchEvent(
+                new CustomEvent("hivemind:game-saved")
+            );
 
-// *** NEW: Return to the main menu.
-function returnToMainMenu() {
-    if (typeof window.stopCustomerLevel === "function") {
-        window.stopCustomerLevel();
+            return true;
+        } catch (error) {
+            console.error("HIVEMIND save failed:", error);
+            return false;
+        }
     }
 
-    window.gameStarted = false;
+    function loadGame() {
+        try {
+            const saved = localStorage.getItem(SAVE_KEY);
 
-    const menu = document.getElementById("main-menu");
-    const game = document.getElementById("game");
+            if (!saved) return false;
 
-    if (menu) menu.hidden = false;
-    if (game) game.hidden = true;
+            const parsed = JSON.parse(saved);
 
-    saveGame();
+            if (!parsed || typeof parsed !== "object") {
+                return false;
+            }
 
-    console.log("Returned to main menu.");
-}
+            window.gameState = {
+                ...cloneDefaultState(),
+                ...parsed,
+                kitchen: {
+                    ...DEFAULT_STATE.kitchen,
+                    ...(parsed.kitchen || {})
+                }
+            };
 
+            updateResources();
 
-// *** NEW: Main menu and settings controls.
-function initialiseMainMenu() {
-    const playButton = document.getElementById("play-game");
-    const settingsButton = document.getElementById("open-settings");
-    const closeSettingsButton = document.getElementById("close-settings");
+            window.dispatchEvent(
+                new CustomEvent("hivemind:game-loaded", {
+                    detail: { ...window.gameState }
+                })
+            );
 
-    const menu = document.getElementById("main-menu");
-    const settings = document.getElementById("settings-screen");
-
-    if (playButton) {
-        playButton.addEventListener("click", startHivemindGame);
+            return true;
+        } catch (error) {
+            console.error("HIVEMIND load failed:", error);
+            window.gameState = cloneDefaultState();
+            return false;
+        }
     }
 
-    if (settingsButton) {
-        settingsButton.addEventListener("click", () => {
-            if (menu) menu.hidden = true;
-            if (settings) settings.hidden = false;
+    function changeMoney(amount) {
+        const value = Number(amount);
+
+        if (!Number.isFinite(value)) return false;
+
+        window.gameState.money = Math.max(
+            0,
+            window.gameState.money + value
+        );
+
+        updateResources();
+        saveGame();
+
+        return true;
+    }
+
+    function changeIngredients(amount) {
+        const value = Number(amount);
+
+        if (!Number.isFinite(value)) return false;
+
+        window.gameState.ingredients = Math.max(
+            0,
+            window.gameState.ingredients + value
+        );
+
+        updateResources();
+        saveGame();
+
+        return true;
+    }
+
+    function changeReputation(amount) {
+        const value = Number(amount);
+
+        if (!Number.isFinite(value)) return false;
+
+        window.gameState.reputation = Math.max(
+            0,
+            Math.min(100, window.gameState.reputation + value)
+        );
+
+        updateResources();
+        saveGame();
+
+        return true;
+    }
+
+    function initialiseSystems() {
+        if (systemsInitialised) return;
+
+        window.initialiseStaff?.();
+        window.initialiseStaffActivity?.();
+        window.initialiseKitchen?.();
+        window.initialiseCustomers?.();
+        window.initialiseMiniGames?.();
+
+        systemsInitialised = true;
+
+        console.log("HIVEMIND: Game systems initialised.");
+    }
+
+    function showScreen(screenId) {
+        const screens = [
+            "main-menu",
+            "settings-screen",
+            "game"
+        ];
+
+        screens.forEach(id => {
+            const element = document.getElementById(id);
+
+            if (element) {
+                element.style.display =
+                    id === screenId ? "block" : "none";
+            }
         });
     }
 
-    if (closeSettingsButton) {
-        closeSettingsButton.addEventListener("click", () => {
-            if (settings) settings.hidden = true;
-            if (menu) menu.hidden = false;
-        });
+    function startHivemindGame() {
+        initialiseSystems();
+
+        gameStarted = true;
+
+        showScreen("game");
+
+        const simulation = window.KitchenSimulation;
+
+        if (simulation) {
+            simulation.start();
+        } else {
+            console.error(
+                "HIVEMIND: KitchenSimulation is missing."
+            );
+        }
+
+        window.startCustomerLevel?.(window.gameState.level);
+
+        updateResources();
+        saveGame();
+
+        window.dispatchEvent(
+            new CustomEvent("hivemind:game-started", {
+                detail: { ...window.gameState }
+            })
+        );
+
+        console.log("HIVEMIND: Kitchen game started.");
     }
-}
 
+    function returnToMainMenu() {
+        gameStarted = false;
 
-// Expose functions.
-window.updateResources = updateResources;
-window.updateCustomerProgressDisplay = updateCustomerProgressDisplay;
-window.saveGame = saveGame;
-window.loadGame = loadGame;
-window.resetGame = resetGame;
-window.changeMoney = changeMoney;
-window.changeIngredients = changeIngredients;
-window.changeReputation = changeReputation;
-window.advanceLevel = advanceLevel;
+        window.KitchenSimulation?.stop();
 
-// *** NEW: Expose main menu functions.
-window.startHivemindGame = startHivemindGame;
-window.returnToMainMenu = returnToMainMenu;
+        saveGame();
+        showScreen("main-menu");
 
+        window.dispatchEvent(
+            new CustomEvent("hivemind:returned-to-menu")
+        );
+    }
 
-// Initialise after the HTML is ready.
-document.addEventListener("DOMContentLoaded", () => {
+    function resetGame() {
+        window.KitchenSimulation?.stop();
+        window.stopCustomerLevel?.();
 
-    const loaded = loadGame();
+        gameStarted = false;
+        window.gameState = cloneDefaultState();
 
-    updateResources();
+        window.KitchenSimulation?.reset();
+        window.StaffSystem?.reset();
+        window.KitchenSystem?.reset();
 
-    if (!loaded) saveGame();
+        updateResources();
+        saveGame();
 
-    // *** NEW: Initialise the main menu.
-    initialiseMainMenu();
+        window.dispatchEvent(
+            new CustomEvent("hivemind:game-reset")
+        );
 
-    console.log("HIVEMIND: Kitchen Harmony ready.");
-});
+        startHivemindGame();
+    }
+
+    function advanceLevel() {
+        window.gameState.level += 1;
+        window.gameState.day += 1;
+        window.gameState.time = 480;
+
+        updateResources();
+        saveGame();
+
+        window.startCustomerLevel?.(window.gameState.level);
+
+        window.dispatchEvent(
+            new CustomEvent("hivemind:level-advanced", {
+                detail: {
+                    level: window.gameState.level,
+                    day: window.gameState.day
+                }
+            })
+        );
+    }
+
+    function openSettings() {
+        showScreen("settings-screen");
+    }
+
+    function closeSettings() {
+        showScreen(gameStarted ? "game" : "main-menu");
+    }
+
+    function initialiseMainMenu() {
+        const playButton = document.getElementById("play-game");
+        const settingsButton = document.getElementById("open-settings");
+        const closeButton = document.getElementById("close-settings");
+
+        playButton?.addEventListener("click", startHivemindGame);
+        settingsButton?.addEventListener("click", openSettings);
+        closeButton?.addEventListener("click", closeSettings);
+
+        showScreen("main-menu");
+    }
+
+    function initialiseGame() {
+        const loaded = loadGame();
+
+        if (!loaded) {
+            window.gameState = cloneDefaultState();
+            saveGame();
+        }
+
+        updateResources();
+        initialiseMainMenu();
+
+        console.log("HIVEMIND: Main controller ready.");
+    }
+
+    // Public game functions used by the other scripts.
+    window.updateResources = updateResources;
+    window.saveGame = saveGame;
+    window.loadGame = loadGame;
+    window.resetGame = resetGame;
+    window.changeMoney = changeMoney;
+    window.changeIngredients = changeIngredients;
+    window.changeReputation = changeReputation;
+    window.advanceLevel = advanceLevel;
+    window.startHivemindGame = startHivemindGame;
+    window.returnToMainMenu = returnToMainMenu;
+    window.initialiseMainMenu = initialiseMainMenu;
+    window.initialiseGame = initialiseGame;
+
+    if (document.readyState === "loading") {
+        document.addEventListener(
+            "DOMContentLoaded",
+            initialiseGame,
+            { once: true }
+        );
+    } else {
+        initialiseGame();
+    }
+})();
+
