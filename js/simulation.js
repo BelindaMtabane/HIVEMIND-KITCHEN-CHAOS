@@ -1,8 +1,8 @@
 
-/* ============================================
+/* =====================================================
    HIVEMIND: KITCHEN HARMONY
-   RESTAURANT SHIFT SIMULATION
-   ============================================ */
+   RESTAURANT SIMULATION ENGINE
+   ===================================================== */
 
 (() => {
     "use strict";
@@ -54,8 +54,11 @@
         running: false
     };
 
-    /* Create the simulation interface */
-    function createSimulationInterface() {
+    /* -----------------------------------------------------
+       INTERFACE
+       ----------------------------------------------------- */
+
+    function createInterface() {
         if (document.getElementById("shift-simulation")) return;
 
         const section = document.createElement("section");
@@ -64,11 +67,13 @@
         section.innerHTML = `
             <div class="shift-heading">
                 <div>
-                    <h2>🍳 Kitchen Shift</h2>
-                    <p>Keep your kitchen moving and complete customer orders.</p>
+                    <span class="shift-eyebrow">RESTAURANT OPERATIONS</span>
+                    <h2>Kitchen Service 🍳</h2>
+                    <p>Prepare meals and keep your customers happy.</p>
                 </div>
-                <div class="shift-status" id="shift-status">
-                    SHIFT READY
+
+                <div id="shift-status" class="shift-status">
+                    KITCHEN CLOSED
                 </div>
             </div>
 
@@ -76,193 +81,68 @@
                 <button id="create-order-btn">
                     + New Customer Order
                 </button>
-                <span>
-                    Completed:
+
+                <div class="shift-counter">
+                    Completed Orders
                     <strong id="shift-completed">0</strong>
-                </span>
+                </div>
             </div>
 
             <div class="shift-stations">
-                <div class="shift-station">
-                    <span>🥬</span>
-                    <strong>Preparation</strong>
-                    <small id="prep-status">Available</small>
+                <div class="shift-station" data-station="prep">
+                    <span class="station-icon">🥬</span>
+                    <div>
+                        <strong>Preparation Counter</strong>
+                        <small id="prep-status">Available</small>
+                    </div>
                 </div>
 
-                <div class="shift-station">
-                    <span>🔥</span>
-                    <strong>Cooking</strong>
-                    <small id="stove-status">Available</small>
+                <div class="shift-station" data-station="stove">
+                    <span class="station-icon">🔥</span>
+                    <div>
+                        <strong>Cooking Station</strong>
+                        <small id="stove-status">Available</small>
+                    </div>
                 </div>
             </div>
 
-            <h3>📋 Incoming Orders</h3>
+            <div class="shift-orders-heading">
+                <h3>Customer Orders</h3>
+                <span id="active-order-count">0 active</span>
+            </div>
+
             <div id="shift-orders">
-                <p class="empty-orders">
-                    No active orders. Create your first order!
-                </p>
+                <div class="empty-orders">
+                    <span>🍽️</span>
+                    <strong>No orders yet!</strong>
+                    <p>Start your kitchen service by receiving an order.</p>
+                </div>
             </div>
 
             <div id="shift-message" role="status">
-                Your kitchen is ready.
+                Your kitchen is ready for service.
             </div>
         `;
 
-        const style = document.createElement("style");
-        style.id = "shift-simulation-style";
-        style.textContent = `
-            #shift-simulation {
-                margin: 24px 0;
-                padding: 22px;
-                border-radius: 18px;
-                background: #182b35;
-                color: #f5f7f5;
-                box-shadow: 0 8px 25px rgba(0,0,0,.18);
-            }
+        const customers = document.getElementById("customers");
 
-            #shift-simulation h2,
-            #shift-simulation h3 {
-                margin-top: 0;
-            }
-
-            .shift-heading,
-            .shift-controls {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                gap: 12px;
-                flex-wrap: wrap;
-            }
-
-            .shift-heading p {
-                color: #b7c9c8;
-                margin-bottom: 0;
-            }
-
-            .shift-status {
-                background: #24594d;
-                padding: 9px 14px;
-                border-radius: 20px;
-                font-size: 12px;
-                font-weight: bold;
-            }
-
-            .shift-controls {
-                margin: 20px 0;
-            }
-
-            #shift-simulation button {
-                border: 0;
-                border-radius: 10px;
-                padding: 11px 16px;
-                background: #e8b85b;
-                color: #243039;
-                font-weight: bold;
-                cursor: pointer;
-            }
-
-            #shift-simulation button:disabled {
-                opacity: .45;
-                cursor: not-allowed;
-            }
-
-            .shift-stations {
-                display: grid;
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 12px;
-                margin: 20px 0;
-            }
-
-            .shift-station {
-                display: flex;
-                flex-direction: column;
-                gap: 7px;
-                padding: 16px;
-                border-radius: 13px;
-                background: #263f49;
-            }
-
-            .shift-station span {
-                font-size: 27px;
-            }
-
-            .shift-station small {
-                color: #a9d9c5;
-            }
-
-            #shift-orders {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-                gap: 12px;
-            }
-
-            .shift-order {
-                padding: 15px;
-                background: #263f49;
-                border: 1px solid #47616a;
-                border-radius: 13px;
-            }
-
-            .shift-order h4 {
-                margin: 0 0 8px;
-            }
-
-            .shift-order p {
-                color: #c4d2d0;
-                font-size: 13px;
-            }
-
-            .shift-order progress {
-                width: 100%;
-                accent-color: #e8b85b;
-            }
-
-            .shift-order select {
-                width: 100%;
-                margin: 8px 0;
-                padding: 9px;
-                border-radius: 8px;
-            }
-
-            .empty-orders {
-                color: #b7c9c8;
-            }
-
-            #shift-message {
-                margin-top: 18px;
-                padding: 12px;
-                background: #263f49;
-                border-radius: 9px;
-                color: #bce8d0;
-            }
-
-            @media (max-width: 520px) {
-                .shift-stations {
-                    grid-template-columns: 1fr;
-                }
-            }
-        `;
-
-        document.head.appendChild(style);
-
-        const customerSection = document.getElementById("customers");
-
-        if (customerSection && customerSection.parentNode) {
-            customerSection.parentNode.insertBefore(
-                section,
-                customerSection
-            );
+        if (customers?.parentNode) {
+            customers.parentNode.insertBefore(section, customers);
         } else {
             document.body.appendChild(section);
         }
 
-        section.appendChild(style);
-        
         document.getElementById("create-order-btn")
             .addEventListener("click", createOrder);
+
+        document.getElementById("shift-status").textContent =
+            "KITCHEN OPEN";
     }
 
-    /* Generate a new customer order */
+    /* -----------------------------------------------------
+       ORDERS
+       ----------------------------------------------------- */
+
     function createOrder() {
         const dish = dishes[
             Math.floor(Math.random() * dishes.length)
@@ -270,32 +150,40 @@
 
         const order = {
             id: simulation.nextOrderId++,
-            dish: dish,
+            dish,
             progress: 0,
             assigned: false,
             completed: false,
+            staffIndex: null,
             staffName: ""
         };
 
         simulation.orders.push(order);
 
-        showMessage(`${dish.icon} New order received: ${dish.name}!`);
+        showMessage(`📥 New order: ${dish.name}!`);
 
         renderOrders();
-        startSimulation();
     }
 
-    /* Display the active orders */
     function renderOrders() {
         const container = document.getElementById("shift-orders");
 
         if (!container) return;
 
+        const activeOrders = simulation.orders.filter(
+            order => !order.completed
+        );
+
+        document.getElementById("active-order-count").textContent =
+            `${activeOrders.length} active`;
+
         if (simulation.orders.length === 0) {
             container.innerHTML = `
-                <p class="empty-orders">
-                    No active orders. Create your first order!
-                </p>
+                <div class="empty-orders">
+                    <span>🍽️</span>
+                    <strong>No orders yet!</strong>
+                    <p>Start your kitchen service by receiving an order.</p>
+                </div>
             `;
             return;
         }
@@ -304,85 +192,118 @@
             const dish = order.dish;
 
             return `
-                <div class="shift-order">
-                    <h4>${dish.icon} ${dish.name}</h4>
+                <article class="shift-order">
+                    <div class="order-card-heading">
+                        <span class="order-food-icon">${dish.icon}</span>
+                        <div>
+                            <h4>${dish.name}</h4>
+                            <small>Order #${order.id}</small>
+                        </div>
+                    </div>
 
-                    <p>
-                        Ingredients: ${dish.ingredients}
-                        <br>
-                        Reward: $${dish.reward}
-                        <br>
-                        Station: ${dish.station}
-                    </p>
-
-                    <label>
-                        Assign staff member
-                        <select
-                            data-order-staff="${order.id}"
-                            ${order.assigned || order.completed ? "disabled" : ""}
-                        >
-                            ${getStaffOptions()}
-                        </select>
-                    </label>
-
-                    <progress
-                        value="${order.progress}"
-                        max="100"
-                    ></progress>
-
-                    <p>
-                        ${
-                            order.completed
-                                ? "✅ Order completed!"
-                                : order.assigned
-                                    ? `Preparing: ${Math.floor(order.progress)}%`
-                                    : "Waiting for staff assignment"
-                        }
-                    </p>
+                    <div class="order-details">
+                        <span>🥕 ${dish.ingredients} ingredients</span>
+                        <span>💰 $${dish.reward}</span>
+                    </div>
 
                     ${
-                        !order.assigned && !order.completed
-                            ? `<button data-assign-order="${order.id}">
-                                Assign Order
-                               </button>`
-                            : ""
+                        order.completed
+                        ? `
+                            <div class="order-completed">
+                                ✓ Order completed
+                            </div>
+                        `
+                        : `
+                            <label class="staff-assignment">
+                                Assign staff member
+
+                                <select
+                                    data-order-staff="${order.id}"
+                                    ${order.assigned ? "disabled" : ""}
+                                >
+                                    ${getStaffOptions()}
+                                </select>
+                            </label>
+
+                            <div class="order-progress">
+                                <div class="order-progress-track">
+                                    <div
+                                        class="order-progress-fill"
+                                        style="width:${order.progress}%"
+                                    ></div>
+                                </div>
+
+                                <small>${Math.floor(order.progress)}% prepared</small>
+                            </div>
+
+                            ${
+                                order.assigned
+                                ? `
+                                    <div class="order-working">
+                                        👨‍🍳 ${order.staffName} is working
+                                    </div>
+                                `
+                                : `
+                                    <button
+                                        data-assign-order="${order.id}"
+                                        class="assign-order-btn"
+                                    >
+                                        Assign Order
+                                    </button>
+                                `
+                            }
+                        `
                     }
-                </div>
+                </article>
             `;
         }).join("");
 
         container.querySelectorAll("[data-assign-order]")
             .forEach(button => {
                 button.addEventListener("click", () => {
-                    const id = Number(button.dataset.assignOrder);
-                    assignOrder(id);
+                    assignOrder(Number(button.dataset.assignOrder));
                 });
             });
 
         updateStationDisplay();
     }
 
-    /* Get staff names from the existing staff system */
     function getStaffOptions() {
-        if (!Array.isArray(window.staffMembers)) {
-            return `<option value="">Staff system loading...</option>`;
+        const members = window.staffMembers || [];
+
+        if (!members.length) {
+            return `<option value="">No staff available</option>`;
         }
 
         return `
             <option value="">Choose staff member</option>
-            ${window.staffMembers.map((member, index) => {
-                const name = member.name || member.fullName || `Staff ${index + 1}`;
+
+            ${members.map((member, index) => {
+                const name =
+                    member.name ||
+                    member.fullName ||
+                    `Staff ${index + 1}`;
+
+                const unavailable =
+                    member.status === "Working" ||
+                    member.energy <= 0;
 
                 return `
-                    <option value="${index}">
-                        ${name}
+                    <option
+                        value="${index}"
+                        ${unavailable ? "disabled" : ""}
+                    >
+                        ${name}${unavailable ? " (Unavailable)" : ""}
                     </option>
                 `;
             }).join("")}
         `;
     }
 
-    /* Assign a staff member to an order */
+    /* -----------------------------------------------------
+       STAFF ASSIGNMENT
+       ----------------------------------------------------- */
+
     function assignOrder(orderId) {
         const order = simulation.orders.find(
             item => item.id === orderId
@@ -395,7 +316,7 @@
         );
 
         if (!select || select.value === "") {
-            showMessage("Please select a staff member first.");
+            showMessage("Please choose a staff member.");
             return;
         }
 
@@ -403,22 +324,25 @@
         const staff = window.staffMembers?.[staffIndex];
 
         if (!staff) {
-            showMessage("That staff member could not be found.");
+            showMessage("Staff member could not be found.");
             return;
         }
 
         const staffName =
-            staff.name || staff.fullName || `Staff ${staffIndex + 1}`;
+            staff.name ||
+            staff.fullName ||
+            `Staff ${staffIndex + 1}`;
 
-        const alreadyWorking = simulation.orders.some(
-            item =>
-                item.staffIndex === staffIndex &&
-                item.assigned &&
-                !item.completed
-        );
+        if (staff.status === "Working" || staff.energy <= 0) {
+            showMessage(`${staffName} is unavailable.`);
+            return;
+        }
 
-        if (alreadyWorking) {
-            showMessage(`${staffName} is already working on an order.`);
+        if (
+            window.StaffActivity &&
+            !window.StaffActivity.start(staffIndex, order.dish.name)
+        ) {
+            showMessage(`${staffName} cannot start this task.`);
             return;
         }
 
@@ -426,32 +350,36 @@
         order.staffName = staffName;
         order.assigned = true;
 
-        showMessage(`${staffName} is now preparing ${order.dish.name}.`);
+        showMessage(`👨‍🍳 ${staffName} started ${order.dish.name}.`);
 
         renderOrders();
         startSimulation();
     }
 
-    /* Run the kitchen preparation loop */
+    /* -----------------------------------------------------
+       KITCHEN SIMULATION
+       ----------------------------------------------------- */
+
     function startSimulation() {
         if (simulation.running) return;
 
         simulation.running = true;
 
         simulation.interval = setInterval(() => {
-            let hasActiveOrders = false;
+            const state = window.gameState;
 
             simulation.orders.forEach(order => {
                 if (!order.assigned || order.completed) return;
 
-                hasActiveOrders = true;
+                if (!state) return;
 
                 const stationLevel =
-                    window.gameState?.kitchen?.[order.dish.station] || 0;
+                    state.kitchen?.[order.dish.station] || 0;
 
-                const preparationSpeed = 1 + (stationLevel * 0.15);
+                const speed = 1 + stationLevel * 0.15;
 
-                order.progress += preparationSpeed * 2;
+                order.progress +=
+                    (100 / order.dish.time) * speed;
 
                 if (order.progress >= 100) {
                     order.progress = 100;
@@ -461,47 +389,70 @@
 
             renderOrders();
 
+            const hasActiveOrders = simulation.orders.some(
+                order => order.assigned && !order.completed
+            );
+
             if (!hasActiveOrders) {
                 stopSimulation();
             }
+
         }, 1000);
     }
 
-    /* Complete an order and update the existing economy */
+    /* -----------------------------------------------------
+       COMPLETING ORDERS
+       ----------------------------------------------------- */
+
     function completeOrder(order) {
         if (order.completed) return;
 
         const state = window.gameState;
 
-        if (!state) {
-            showMessage("Game state is not available.");
-            return;
-        }
+        if (!state) return;
 
         if (state.ingredients < order.dish.ingredients) {
             order.assigned = false;
             order.progress = 0;
 
-            showMessage(
-                `Not enough ingredients for ${order.dish.name}!`
-            );
+            window.StaffActivity?.cancel(order.staffIndex);
+
+            order.staffIndex = null;
+            order.staffName = "";
+
+            showMessage("⚠️ Not enough ingredients!");
 
             return;
         }
 
         order.completed = true;
 
+        /* *** Deduct ingredients and award money. */
         state.ingredients -= order.dish.ingredients;
         state.money += order.dish.reward;
-        state.ordersCompleted = (state.ordersCompleted || 0) + 1;
-        state.customersServed = (state.customersServed || 0) + 1;
+
+        state.ordersCompleted =
+            (state.ordersCompleted || 0) + 1;
+
+        state.customersServed =
+            (state.customersServed || 0) + 1;
 
         simulation.completed++;
 
+        /* *** Release staff and award experience. */
+        window.StaffActivity?.finish(order.staffIndex);
+
+        /* *** Reward restaurant reputation. */
         if (typeof window.changeReputation === "function") {
             window.changeReputation(2);
+        } else {
+            state.reputation = Math.min(
+                100,
+                (state.reputation || 0) + 2
+            );
         }
 
+        /* *** Refresh resources and save. */
         if (typeof window.updateResources === "function") {
             window.updateResources();
         }
@@ -517,10 +468,13 @@
             `🎉 ${order.staffName} completed ${order.dish.name}! +$${order.dish.reward}`
         );
 
-        renderOrders();
+        updateStationDisplay();
     }
 
-    /* Update station availability */
+    /* -----------------------------------------------------
+       STATION DISPLAY
+       ----------------------------------------------------- */
+
     function updateStationDisplay() {
         ["prep", "stove"].forEach(station => {
             const active = simulation.orders.some(
@@ -530,16 +484,27 @@
                     !order.completed
             );
 
-            const element = document.getElementById(`${station}-status`);
+            const element = document.getElementById(
+                `${station}-status`
+            );
 
             if (element) {
-                element.textContent = active ? "In operation" : "Available";
+                element.textContent = active
+                    ? "👨‍🍳 In operation"
+                    : "Available";
             }
         });
     }
 
+    /* -----------------------------------------------------
+       UTILITIES
+       ----------------------------------------------------- */
+
     function stopSimulation() {
-        clearInterval(simulation.interval);
+        if (simulation.interval) {
+            clearInterval(simulation.interval);
+        }
+
         simulation.interval = null;
         simulation.running = false;
     }
@@ -552,35 +517,30 @@
         }
     }
 
-    /* Start after the existing game systems load */
-    function initialiseSimulation() {
+    /* -----------------------------------------------------
+       INITIALISATION
+       ----------------------------------------------------- */
+
+    function initialise() {
         if (!window.gameState) {
-            console.error("Kitchen Harmony: gameState was not found.");
+            console.error("Kitchen Harmony: gameState unavailable.");
             return;
         }
 
-        createSimulationInterface();
+        createInterface();
         renderOrders();
 
-        const status = document.getElementById("shift-status");
-
-        if (status) {
-            status.textContent = "KITCHEN OPEN";
-        }
-
-        console.log("Kitchen Harmony: Shift simulation initialised.");
+        console.log("Kitchen Harmony simulation is ready!");
     }
 
     window.KitchenSimulation = {
-        initialise: initialiseSimulation,
+        initialise,
         createOrder,
         assignOrder,
         renderOrders,
         getState: () => simulation
     };
 
-    document.addEventListener("DOMContentLoaded", () => {
-        initialiseSimulation();
-    });
+    document.addEventListener("DOMContentLoaded", initialise);
 
 })();
