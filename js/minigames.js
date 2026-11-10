@@ -1,5 +1,5 @@
 
-/* HIVEMIND: Kitchen Chaos
+/* HIVEMIND: Kitchen Harmony
    CHOP CHOP! Ingredient preparation mini-game
 */
 
@@ -123,7 +123,7 @@ function renderChopChop() {
                 id="chop-result"
                 aria-live="polite"
             >
-                Can you handle the kitchen chaos?
+                Can you handle the kitchen harmony?
             </p>
 
         </div>
@@ -405,9 +405,10 @@ function finishChopChop() {
         document.getElementById("chop-result");
 
     if (resultElement) {
+        // *** Display rewards in South African rand.
         resultElement.textContent =
             `${resultMessage} Score: ${chopGame.score}. ` +
-            `Reward: $${reward} and ${ingredientReward} ingredients.`;
+            `Reward: R${reward} and ${ingredientReward} ingredients.`;
     }
 
     console.log("CHOP CHOP completed:", {
