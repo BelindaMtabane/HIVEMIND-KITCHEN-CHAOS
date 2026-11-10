@@ -1,1 +1,273 @@
 
+/* HIVEMIND: KITCHEN CHAOS - Main Styles */
+
+:root {
+    --background: #fff8ed;
+    --surface: #ffffff;
+    --primary: #ff784f;
+    --secondary: #ffc857;
+    --dark: #342b35;
+    --muted: #887d80;
+    --green: #72b77e;
+    --border: #f0e5d9;
+    --shadow: 0 5px 18px rgba(60, 40, 30, 0.07);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Trebuchet MS", Arial, sans-serif;
+    background: var(--background);
+    color: var(--dark);
+}
+
+button {
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: bold;
+    transition: 0.2s ease;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.04);
+}
+
+.topbar {
+    background: var(--surface);
+    padding: 18px 5%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand > span {
+    font-size: 42px;
+}
+
+.brand h1 {
+    font-size: 23px;
+    letter-spacing: 2px;
+}
+
+.brand small {
+    color: var(--primary);
+    font-weight: bold;
+    letter-spacing: 3px;
+}
+
+.resources {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.resources div {
+    background: var(--background);
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.dashboard {
+    max-width: 1250px;
+    margin: 35px auto;
+    padding: 0 25px;
+}
+
+.welcome {
+    background: linear-gradient(120deg, #ff784f, #ffae65);
+    color: white;
+    padding: 30px;
+    border-radius: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    box-shadow: var(--shadow);
+}
+
+.welcome h2 {
+    font-size: 27px;
+    margin-bottom: 8px;
+}
+
+.welcome p {
+    opacity: 0.9;
+}
+
+.day {
+    background: white;
+    color: var(--primary);
+    padding: 15px 22px;
+    border-radius: 12px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.navigation {
+    display: flex;
+    gap: 10px;
+    margin: 25px 0;
+    flex-wrap: wrap;
+}
+
+.navigation button {
+    background: white;
+    color: var(--dark);
+    padding: 14px 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+}
+
+.navigation button.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.panel {
+    display: none;
+    animation: appear 0.3s ease;
+}
+
+.active-panel {
+    display: block;
+}
+
+.panel h2 {
+    margin-bottom: 20px;
+    font-size: 24px;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+}
+
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 17px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+}
+
+.card h3 {
+    margin-bottom: 12px;
+    font-size: 18px;
+}
+
+.card p {
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 18px;
+}
+
+.card button {
+    background: var(--primary);
+    color: white;
+    padding: 11px 16px;
+    border-radius: 10px;
+}
+
+.card .secondary-button {
+    background: var(--secondary);
+    color: var(--dark);
+}
+
+.card .disabled-button {
+    background: #d8d2cf;
+    color: #777;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.staff-card {
+    border-top: 5px solid var(--secondary);
+}
+
+.staff-avatar {
+    font-size: 45px;
+    margin-bottom: 12px;
+}
+
+.staff-stats {
+    background: var(--background);
+    padding: 10px;
+    border-radius: 10px;
+    margin: 12px 0;
+    font-size: 13px;
+    line-height: 1.8;
+}
+
+.event-message {
+    background: #fff1d6;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+footer {
+    text-align: center;
+    padding: 30px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+@keyframes appear {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 700px) {
+    .topbar {
+        align-items: flex-start;
+    }
+
+    .resources {
+        width: 100%;
+    }
+
+    .resources div {
+        flex: 1;
+        text-align: center;
+    }
+
+    .welcome {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .navigation button {
+        flex: 1 1 40%;
+    }
+
+    .dashboard {
+        padding: 0 15px;
+    }
+}
+
