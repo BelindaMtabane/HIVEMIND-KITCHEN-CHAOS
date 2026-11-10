@@ -1,185 +1,34 @@
 
-/* =========================================
+/* =====================================================
    HIVEMIND: KITCHEN CHAOS
-   FRUTIGER AERO VISUAL THEME
-========================================= */
+   FRUTIGER AERO - GAME INTERFACE V3
+===================================================== */
 
 :root {
-    --aero-blue: #42c9ed;
-    --aero-dark-blue: #087eae;
-    --aero-turquoise: #45e0c0;
-    --aero-green: #8eea85;
-    --aero-light: #e9fbff;
-    --aero-white: #ffffff;
-    --glass: rgba(255, 255, 255, 0.65);
-    --glass-border: rgba(255, 255, 255, 0.85);
-    --aero-shadow: 0 8px 30px rgba(0, 120, 170, 0.15);
+    --blue: #16a9d4;
+    --deep-blue: #0879a9;
+    --cyan: #8af1f5;
+    --mint: #75e8c4;
+    --green: #6acb85;
+    --lime: #c9f58b;
+    --white: #ffffff;
+    --ink: #15536c;
+
+    --glass: rgba(255,255,255,.78);
+    --glass-dark: rgba(255,255,255,.48);
+
+    --shadow:
+        0 8px 24px rgba(0,105,145,.13),
+        inset 0 1px 3px rgba(255,255,255,.9);
 }
 
-/* Main background */
-body {
-    background:
-        radial-gradient(circle at 15% 20%, #b7f7e8 0%, transparent 35%),
-        radial-gradient(circle at 85% 15%, #a9eaff 0%, transparent 35%),
-        linear-gradient(135deg, #d8f8ff, #b9f5ed, #e8fff1);
+/* =========================
+   GAME WORLD BACKGROUND
+========================= */
 
-    background-attachment: fixed;
-    color: #15556d;
-    font-family: "Trebuchet MS", Arial, sans-serif;
-}
-
-/* Soft floating bubble decorations */
-body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: -1;
-
-    background-image:
-        radial-gradient(circle at 10% 80%,
-            rgba(255,255,255,.65) 0 12px,
-            transparent 13px),
-        radial-gradient(circle at 85% 70%,
-            rgba(255,255,255,.5) 0 20px,
-            transparent 21px),
-        radial-gradient(circle at 70% 25%,
-            rgba(255,255,255,.45) 0 9px,
-            transparent 10px);
-}
-
-/* Headings */
-h1, h2, h3 {
-    color: #087eae;
-    font-weight: 800;
-    text-shadow: 0 2px 3px rgba(255,255,255,.7);
-}
-
-/* Glass panels and cards */
-.card,
-.panel,
-.container,
-section {
-    background: var(--glass);
-    border: 1px solid var(--glass-border);
-    border-radius: 22px;
-    box-shadow: var(--aero-shadow);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-}
-
-/* Upgrade cards */
-#upgrade-list .card {
-    padding: 22px;
-    margin: 15px 0;
-    transition: transform .25s ease, box-shadow .25s ease;
-}
-
-#upgrade-list .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 14px 35px rgba(0, 150, 190, .22);
-}
-
-/* Glossy buttons */
-button {
-    background: linear-gradient(
-        180deg,
-        #a5f5ff 0%,
-        #42c9ed 48%,
-        #168fcb 100%
-    );
-
-    color: white;
-    border: 2px solid rgba(255,255,255,.85);
-    border-radius: 30px;
-    padding: 12px 25px;
-    font-weight: bold;
-    cursor: pointer;
-
-    box-shadow:
-        inset 0 2px 4px rgba(255,255,255,.8),
-        0 5px 12px rgba(0,110,160,.2);
-
-    transition: all .2s ease;
-}
-
-button:hover:not(:disabled) {
-    transform: translateY(-3px);
-    filter: brightness(1.1);
-    box-shadow: 0 8px 18px rgba(0,130,180,.3);
-}
-
-button:active:not(:disabled) {
-    transform: scale(.97);
-}
-
-button:disabled {
-    opacity: .55;
-    cursor: not-allowed;
-}
-
-/* Inputs */
-input, select, textarea {
-    background: rgba(255,255,255,.8);
-    border: 2px solid #a5eaf3;
-    border-radius: 14px;
-    padding: 11px;
-    color: #15556d;
-    outline: none;
-}
-
-input:focus, select:focus, textarea:focus {
-    border-color: var(--aero-blue);
-    box-shadow: 0 0 10px rgba(66,201,237,.3);
-}
-
-/* Resource displays */
-.resource, .stat {
-    background: rgba(255,255,255,.6);
-    border: 1px solid white;
-    border-radius: 16px;
-    padding: 12px 18px;
-    box-shadow: var(--aero-shadow);
-}
-
-/* Smooth page transitions */
 * {
     box-sizing: border-box;
 }
-
-button, .card {
-    transition-duration: .25s;
-}
-
-/* Mobile support */
-@media (max-width: 600px) {
-    #upgrade-list .card {
-        padding: 16px;
-    }
-
-    button {
-        padding: 10px 18px;
-    }
-}
-
-/* ==========================================
-   FRUTIGER AERO 2.0 - LAYOUT REDESIGN
-   HIVEMIND: KITCHEN CHAOS
-========================================== */
-
-:root {
-    --sky: #55cbed;
-    --ocean: #087fae;
-    --mint: #55d9b8;
-    --lime: #a8e982;
-    --white: #ffffff;
-    --text: #18566c;
-    --glass: rgba(255, 255, 255, 0.72);
-    --border: rgba(255, 255, 255, 0.95);
-    --shadow: 0 10px 30px rgba(18, 126, 166, 0.13);
-}
-
-/* PAGE FOUNDATION */
 
 html {
     min-height: 100%;
@@ -189,132 +38,245 @@ html {
 body {
     min-height: 100vh;
     margin: 0;
-    padding: 30px 20px;
+    padding: 20px;
+
+    font-family: "Trebuchet MS", Arial, sans-serif;
+    color: var(--ink);
 
     background:
-        radial-gradient(ellipse at 10% 10%, #c2fff0, transparent 40%),
-        radial-gradient(ellipse at 90% 20%, #a8eaff, transparent 40%),
-        linear-gradient(145deg, #e5fbff, #c6f6ed 55%, #eaffea);
+        radial-gradient(circle at 10% 15%,
+            rgba(255,255,255,.9) 0 3px,
+            transparent 4px),
+        radial-gradient(circle at 85% 30%,
+            rgba(255,255,255,.7) 0 12px,
+            transparent 13px),
+        radial-gradient(ellipse at 20% 80%,
+            #b9ffe4,
+            transparent 40%),
+        radial-gradient(ellipse at 90% 10%,
+            #9deaff,
+            transparent 45%),
+        linear-gradient(145deg,#e4fbff,#b9f4ed,#eaffd9);
 
     background-attachment: fixed;
-    color: var(--text);
-    font-family: "Trebuchet MS", Arial, sans-serif;
 }
 
-/* MAIN PAGE WIDTH */
+/* =========================
+   GAME SCREEN WRAPPER
+========================= */
 
+body > main,
 main,
 .container {
     width: 100%;
-    max-width: 1100px;
-    margin-left: auto;
-    margin-right: auto;
+    max-width: 1250px;
+    margin: auto;
 }
 
-/* HEADINGS */
+/* =========================
+   GAME TITLE
+========================= */
 
 h1 {
-    font-size: clamp(2rem, 5vw, 3.2rem);
     text-align: center;
-    color: #087eae;
-    letter-spacing: -1px;
-    margin-bottom: 12px;
+    color: #0789bd;
+    font-size: clamp(2rem,5vw,3.5rem);
+    font-weight: 900;
+    letter-spacing: -2px;
+
+    text-shadow:
+        0 2px 0 white,
+        0 5px 12px rgba(0,130,180,.15);
 }
 
-h2 {
-    font-size: 1.7rem;
-    color: #0789ad;
-}
-
-h3 {
-    color: #1688a5;
-    font-size: 1.15rem;
+h2,h3 {
+    color: #087fae;
+    font-weight: 800;
 }
 
 p {
-    line-height: 1.7;
+    line-height: 1.6;
 }
 
-/* SECTIONS - KEEP THEM CLEAN */
+/* =========================
+   GAME HUD / TOP BAR
+========================= */
 
-section {
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    backdrop-filter: none;
-    margin: 25px 0;
-    padding: 10px 0;
+header,
+.game-header,
+#game-header {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+
+    padding: 20px 25px;
+    margin-bottom: 20px;
+
+    background: linear-gradient(
+        120deg,
+        #13a7d2,
+        #45d6ce,
+        #78e5b1
+    );
+
+    border: 2px solid white;
+    border-radius: 25px;
+
+    box-shadow:
+        0 8px 22px rgba(0,120,160,.2),
+        inset 0 3px 5px rgba(255,255,255,.6);
+
+    color: white;
 }
 
-/* GLASS PANELS */
+header h1,
+.game-header h1 {
+    color: white;
+    text-shadow: 0 2px 4px rgba(0,80,120,.2);
+}
+
+/* =========================
+   RESOURCE HUD
+========================= */
+
+.resource,
+.stat,
+.resource-item {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+
+    padding: 12px 18px;
+    margin: 5px;
+
+    background: linear-gradient(
+        145deg,
+        #ffffff,
+        #dffaff
+    );
+
+    border: 2px solid white;
+    border-radius: 17px;
+
+    color: #087fae;
+    font-weight: 900;
+
+    box-shadow: var(--shadow);
+}
+
+/* =========================
+   GAME NAVIGATION
+========================= */
+
+nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+
+    margin: 20px 0;
+    padding: 12px;
+
+    background: rgba(255,255,255,.48);
+    border: 1px solid white;
+    border-radius: 22px;
+
+    box-shadow: var(--shadow);
+}
+
+nav a,
+nav button {
+    text-decoration: none;
+    font-weight: 900;
+}
+
+/* =========================
+   GAME PANELS
+========================= */
 
 .panel,
 .game-panel,
 .card,
+section,
 #customer-content {
-    background: var(--glass);
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    box-shadow: var(--shadow);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-}
-
-/* RESOURCE BAR */
-
-.resource,
-.stat {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-
-    background: linear-gradient(
-        145deg,
-        rgba(255,255,255,.95),
-        rgba(218,250,255,.8)
-    );
-
     border: 1px solid white;
-    border-radius: 18px;
-    padding: 13px 20px;
-    margin: 6px;
-    font-weight: bold;
-    box-shadow: 0 5px 15px rgba(0,130,170,.1);
+    border-radius: 24px;
+
+    background: var(--glass);
+
+    box-shadow: var(--shadow);
+
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
 }
 
-/* UPGRADE GRID */
+/* Keep sections structured */
+section {
+    margin: 20px 0;
+    padding: 22px;
+}
+
+/* =========================
+   GAME STATIONS
+========================= */
 
 #upgrade-list {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(3,minmax(0,1fr));
     gap: 20px;
-    width: 100%;
+    margin: 20px 0;
 }
 
 #upgrade-list .card {
-    padding: 24px 20px;
-    margin: 0;
+    padding: 25px 20px;
     text-align: center;
     min-width: 0;
-    transition: transform .25s ease, box-shadow .25s ease;
+
+    background: linear-gradient(
+        145deg,
+        rgba(255,255,255,.94),
+        rgba(203,248,255,.75)
+    );
+
+    border: 2px solid white;
+    border-radius: 25px;
+
+    transition: transform .25s, box-shadow .25s;
 }
 
 #upgrade-list .card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 15px 30px rgba(0,140,180,.2);
+    transform: translateY(-7px) scale(1.015);
+
+    box-shadow:
+        0 15px 30px rgba(0,130,180,.2),
+        inset 0 2px 5px white;
 }
 
 #upgrade-list .card h3 {
-    font-size: 1.3rem;
+    font-size: 1.35rem;
 }
 
-/* CUSTOMER CONVERSATION PANEL */
+/* =========================
+   CUSTOMER GAME SYSTEM
+========================= */
 
 #customer-content {
-    max-width: 760px;
+    max-width: 850px;
     margin: 25px auto;
     padding: 30px;
+
+    background: linear-gradient(
+        145deg,
+        rgba(255,255,255,.9),
+        rgba(194,247,255,.75)
+    );
+}
+
+.customer-profile {
     text-align: center;
 }
 
@@ -323,21 +285,19 @@ section {
 }
 
 .customer-dialogue {
-    background: linear-gradient(
-        135deg,
-        rgba(255,255,255,.95),
-        rgba(195,245,255,.85)
-    );
-
-    border: 1px solid white;
-    border-radius: 22px;
-    padding: 22px;
+    padding: 25px;
     margin: 22px 0;
-    box-shadow: inset 0 2px 8px rgba(255,255,255,.9);
+
+    background: white;
+    border: 2px solid #a8ecf3;
+    border-radius: 22px;
+
+    box-shadow:
+        inset 0 3px 8px rgba(0,160,190,.08);
 }
 
 .customer-dialogue p {
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     font-weight: bold;
 }
 
@@ -345,109 +305,212 @@ section {
     display: grid;
     grid-template-columns: 1fr;
     gap: 12px;
-    margin-top: 20px;
 }
 
 .customer-choices button {
-    width: 100%;
     text-align: left;
-    padding: 16px 20px;
+    width: 100%;
 }
 
 .customer-reaction {
-    background: rgba(190,255,225,.65);
-    border: 1px solid white;
-    border-radius: 20px;
-    padding: 20px;
+    padding: 22px;
     margin-top: 25px;
-}
 
-/* GLOSSY BUTTONS */
-
-button {
     background: linear-gradient(
-        180deg,
-        #b5faff 0%,
-        #55d5ed 45%,
-        #168bc7 100%
+        135deg,
+        #d5ffe7,
+        #baf3ed
     );
 
-    border: 1px solid white;
+    border: 2px solid white;
+    border-radius: 22px;
+}
+
+/* =========================
+   GAME BUTTONS
+========================= */
+
+button {
+    padding: 13px 23px;
+
+    border: 2px solid white;
     border-radius: 30px;
+
+    background: linear-gradient(
+        180deg,
+        #bafaff 0%,
+        #4acbe7 45%,
+        #168bc8 100%
+    );
+
     color: white;
-    padding: 13px 24px;
     font-family: inherit;
     font-size: .95rem;
-    font-weight: bold;
+    font-weight: 900;
+
     cursor: pointer;
 
     box-shadow:
-        inset 0 2px 5px rgba(255,255,255,.9),
-        0 5px 12px rgba(0,110,160,.2);
+        inset 0 3px 5px rgba(255,255,255,.85),
+        0 5px 12px rgba(0,100,150,.2);
 
-    transition: transform .2s, filter .2s;
+    transition: all .2s ease;
 }
 
 button:hover:not(:disabled) {
     transform: translateY(-3px);
-    filter: brightness(1.08);
+    filter: brightness(1.1);
+
+    box-shadow:
+        0 9px 20px rgba(0,130,180,.25);
+}
+
+button:active:not(:disabled) {
+    transform: scale(.96);
 }
 
 button:disabled {
-    opacity: .5;
+    opacity: .45;
     cursor: not-allowed;
 }
 
-/* INPUTS */
+/* =========================
+   GAME STATUS INDICATORS
+========================= */
+
+.status,
+.badge {
+    display: inline-block;
+    padding: 7px 14px;
+
+    border-radius: 20px;
+    background: linear-gradient(
+        145deg,
+        #d8ffe2,
+        #9deebc
+    );
+
+    border: 1px solid white;
+    color: #176b49;
+
+    font-weight: bold;
+    font-size: .85rem;
+}
+
+/* =========================
+   INPUTS
+========================= */
 
 input,
 select,
 textarea {
     width: 100%;
     max-width: 100%;
+
     padding: 13px;
-    border: 1px solid #a5eaf3;
-    border-radius: 14px;
-    background: rgba(255,255,255,.85);
-    color: var(--text);
+
+    border: 2px solid #b4edf2;
+    border-radius: 15px;
+
+    background: rgba(255,255,255,.9);
+    color: var(--ink);
+
     font-family: inherit;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-    outline: 2px solid var(--sky);
+    outline: none;
+    border-color: var(--blue);
+
+    box-shadow: 0 0 12px rgba(22,169,212,.25);
 }
 
-/* RESPONSIVE LAYOUT */
+/* =========================
+   PROGRESS BARS
+========================= */
 
-@media (max-width: 800px) {
+progress {
+    width: 100%;
+    height: 17px;
+    appearance: none;
+    border: none;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+progress::-webkit-progress-bar {
+    background: #d5f1f4;
+    border-radius: 20px;
+}
+
+progress::-webkit-progress-value {
+    background: linear-gradient(
+        90deg,
+        #36c9df,
+        #65e2ad
+    );
+    border-radius: 20px;
+}
+
+/* =========================
+   MOBILE GAME LAYOUT
+========================= */
+
+@media (max-width: 850px) {
     #upgrade-list {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(2,minmax(0,1fr));
+    }
+
+    header {
+        justify-content: center;
+        text-align: center;
     }
 }
 
 @media (max-width: 550px) {
     body {
-        padding: 15px 12px;
+        padding: 10px;
     }
 
     #upgrade-list {
         grid-template-columns: 1fr;
     }
 
+    section {
+        padding: 14px;
+    }
+
     #customer-content {
-        padding: 20px 14px;
+        padding: 18px;
     }
 
     h1 {
         font-size: 2rem;
     }
 
-    .resource,
-    .stat {
-        padding: 10px 13px;
+    nav {
+        gap: 6px;
     }
+}
+
+/* =========================
+   ANIMATION
+========================= */
+
+@keyframes aeroFloat {
+    0%,100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+.resource:first-child {
+    animation: aeroFloat 4s ease-in-out infinite;
 }
 
 
