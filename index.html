@@ -7,22 +7,118 @@
 
     <!-- *** Browser information -->
     <meta name="theme-color" content="#18232b">
-    <meta name="description" content="HIVEMIND: Kitchen Chaos - Manage your restaurant, staff and kitchen in this interactive cooking game.">
+    <meta name="description" content="HIVEMIND: Kitchen Harmony - Manage your restaurant, staff and kitchen.">
 
-    <title>HIVEMIND: Kitchen Chaos</title>
+    <title>HIVEMIND: Kitchen Harmony</title>
 
     <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
+    <!-- *** Main menu -->
+    <div id="main-menu" style="
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        background: #18232b;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-family: Arial, sans-serif;
+    ">
+
+        <div style="font-size: 65px;">🍳</div>
+
+        <h1 style="font-size: 48px; letter-spacing: 5px; margin-bottom: 5px;">
+            HIVEMIND
+        </h1>
+
+        <p style="letter-spacing: 7px; color: #75d6bd;">
+            KITCHEN HARMONY
+        </p>
+
+        <p style="color: #bdc9ce; margin-bottom: 35px;">
+            Lead your team. Manage your kitchen. Keep your customers happy.
+        </p>
+
+        <button id="play-game" style="
+            width: 220px;
+            padding: 16px;
+            margin: 8px;
+            border: none;
+            border-radius: 8px;
+            background: #75d6bd;
+            color: #18232b;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        ">
+            PLAY GAME
+        </button>
+
+        <button id="open-settings" style="
+            width: 220px;
+            padding: 16px;
+            margin: 8px;
+            border: 1px solid #75d6bd;
+            border-radius: 8px;
+            background: transparent;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+        ">
+            SETTINGS
+        </button>
+
+        <p style="position: absolute; bottom: 15px; color: #82949b;">
+            HIVEMIND: Kitchen Harmony © 2026
+        </p>
+
+    </div>
+
+    <!-- *** Settings screen -->
+    <div id="settings-screen" hidden style="
+        position: fixed;
+        inset: 0;
+        z-index: 10001;
+        background: #18232b;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-family: Arial, sans-serif;
+    ">
+
+        <h2>SETTINGS</h2>
+
+        <p>Game settings will be expanded as development continues.</p>
+
+        <button id="close-settings" style="
+            padding: 13px 35px;
+            margin-top: 20px;
+            background: #75d6bd;
+            color: #18232b;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+        ">
+            BACK
+        </button>
+
+    </div>
+
     <!--
-        *** Keep the original game interface in the DOM.
-        Its JavaScript systems still use these elements.
-        The full-screen kitchen scene is displayed separately.
+        *** Preserve the original game interface in the DOM.
+        Existing JavaScript systems still use these elements.
+        The main menu is displayed before gameplay begins.
     -->
 
-    <div id="game">
+    <div id="game" hidden>
 
         <header class="topbar">
 
@@ -31,14 +127,14 @@
 
                 <div>
                     <h1>HIVEMIND</h1>
-                    <small>KITCHEN CHAOS</small>
+                    <small>KITCHEN HARMONY</small>
                 </div>
             </div>
 
             <div class="resources">
                 <div>💰 Money: <span id="money">500</span></div>
                 <div>🥕 Ingredients: <span id="ingredients">100</span></div>
-                <div>⭐ Reputation: <span id="reputation">10</span></div>
+                <div>⭐ Reputation: <span id="reputation">50</span></div>
             </div>
 
         </header>
@@ -49,7 +145,7 @@
 
                 <div>
                     <h2>Welcome, Head Chef!</h2>
-                    <p>Your restaurant is open. Your staff are... questionable.</p>
+                    <p>Your restaurant is open. Your team is ready for instructions.</p>
                 </div>
 
                 <div class="day">
@@ -81,7 +177,7 @@
                     <article class="card">
                         <h3>🍳 Kitchen Status</h3>
                         <p>Your kitchen is operational.</p>
-                        <button data-go="kitchen">Upgrade Kitchen</button>
+                        <button data-go="kitchen">Kitchen Management</button>
                     </article>
 
                     <article class="card">
@@ -92,7 +188,7 @@
 
                     <article class="card">
                         <h3>📢 Restaurant News</h3>
-                        <p id="event-message">Chef Bella is arguing with a potato.</p>
+                        <p id="event-message">The kitchen is ready for its first customers.</p>
                         <button id="new-event">New Event</button>
                     </article>
 
@@ -109,7 +205,7 @@
 
             <section id="kitchen" class="panel">
 
-                <h2>Kitchen Upgrades</h2>
+                <h2>Kitchen Management</h2>
                 <div id="upgrade-list" class="dashboard-grid"></div>
 
             </section>
@@ -131,7 +227,7 @@
         </main>
 
         <footer>
-            HIVEMIND: Kitchen Chaos © 2026
+            HIVEMIND: Kitchen Harmony © 2026
         </footer>
 
     </div>
