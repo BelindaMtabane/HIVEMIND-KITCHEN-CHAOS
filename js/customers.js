@@ -1,6 +1,6 @@
 
 // HIVEMIND: Kitchen Harmony
-// Customer conversations and automatic customer arrivals
+// Customer conversations, automatic arrivals and monitoring
 
 const customerTemplates = [
     {
@@ -9,24 +9,9 @@ const customerTemplates = [
         personality: "The Professional Complainer",
         dialogue: "EXCUSE ME! I've been waiting for 5 minutes. Do you know who I am?!",
         choices: [
-            {
-                text: "Apologise and offer a discount.",
-                response: "Fine. I shall allow it. 💅",
-                reputation: 8,
-                money: -10
-            },
-            {
-                text: "Tell her patience is a virtue.",
-                response: "I WANT TO SPEAK TO THE MANAGER!",
-                reputation: -10,
-                money: 0
-            },
-            {
-                text: "Offer her a complimentary dessert.",
-                response: "Now THAT is customer service!",
-                reputation: 12,
-                money: -5
-            }
+            { text: "Apologise and offer a discount.", response: "Fine. I shall allow it. 💅", reputation: 8, money: -10 },
+            { text: "Tell her patience is a virtue.", response: "I WANT TO SPEAK TO THE MANAGER!", reputation: -10, money: 0 },
+            { text: "Offer her a complimentary dessert.", response: "Now THAT is customer service!", reputation: 12, money: -5 }
         ]
     },
     {
@@ -35,24 +20,9 @@ const customerTemplates = [
         personality: "The Hungry Food Critic",
         dialogue: "I ordered a burger. Why does it look like it has been through a divorce?",
         choices: [
-            {
-                text: "Offer to replace the burger.",
-                response: "Excellent. I expect greatness.",
-                reputation: 10,
-                money: -5
-            },
-            {
-                text: "Explain that it's modern cuisine.",
-                response: "Modern? It looks prehistoric.",
-                reputation: -8,
-                money: 0
-            },
-            {
-                text: "Give him a free side dish.",
-                response: "Okay, you've earned another chance.",
-                reputation: 6,
-                money: -5
-            }
+            { text: "Offer to replace the burger.", response: "Excellent. I expect greatness.", reputation: 10, money: -5 },
+            { text: "Explain that it's modern cuisine.", response: "Modern? It looks prehistoric.", reputation: -8, money: 0 },
+            { text: "Give him a free side dish.", response: "Okay, you've earned another chance.", reputation: 6, money: -5 }
         ]
     },
     {
@@ -61,24 +31,9 @@ const customerTemplates = [
         personality: "The Sweet Grandma",
         dialogue: "My dear, this soup is lovely! But it reminds me of my late husband's cooking.",
         choices: [
-            {
-                text: "Ask her to share the recipe.",
-                response: "Oh, bless you! He would have loved this place.",
-                reputation: 12,
-                money: 5
-            },
-            {
-                text: "Offer her another bowl.",
-                response: "You're such a sweetheart!",
-                reputation: 10,
-                money: -5
-            },
-            {
-                text: "Say nothing and smile.",
-                response: "A little shy, are we? Thank you, dear!",
-                reputation: 5,
-                money: 0
-            }
+            { text: "Ask her to share the recipe.", response: "Oh, bless you! He would have loved this place.", reputation: 12, money: 5 },
+            { text: "Offer her another bowl.", response: "You're such a sweetheart!", reputation: 10, money: -5 },
+            { text: "Say nothing and smile.", response: "A little shy, are we? Thank you, dear!", reputation: 5, money: 0 }
         ]
     },
     {
@@ -87,24 +42,9 @@ const customerTemplates = [
         personality: "The Wealthy Customer",
         dialogue: "I have money. I have standards. And I have absolutely no idea what I want.",
         choices: [
-            {
-                text: "Recommend the chef's special.",
-                response: "Magnificent! Keep the change.",
-                reputation: 10,
-                money: 30
-            },
-            {
-                text: "Show him the most expensive meal.",
-                response: "FINALLY! Someone who understands me!",
-                reputation: 5,
-                money: 40
-            },
-            {
-                text: "Ask him to choose something himself.",
-                response: "How dare you make me think?!",
-                reputation: -5,
-                money: 0
-            }
+            { text: "Recommend the chef's special.", response: "Magnificent! Keep the change.", reputation: 10, money: 30 },
+            { text: "Show him the most expensive meal.", response: "FINALLY! Someone who understands me!", reputation: 5, money: 40 },
+            { text: "Ask him to choose something himself.", response: "How dare you make me think?!", reputation: -5, money: 0 }
         ]
     },
     {
@@ -113,24 +53,9 @@ const customerTemplates = [
         personality: "The Social Media Star",
         dialogue: "Heyyy! I'm recording. Can I get a free meal for my 47 followers?",
         choices: [
-            {
-                text: "Give a complimentary meal.",
-                response: "OMG! This place is ICONIC! FOLLOW THEM!",
-                reputation: 15,
-                money: -15
-            },
-            {
-                text: "Offer a small influencer discount.",
-                response: "Not bad. I'll tag your restaurant!",
-                reputation: 8,
-                money: -5
-            },
-            {
-                text: "Politely decline.",
-                response: "Wow. Cancelled. Absolutely cancelled.",
-                reputation: -8,
-                money: 0
-            }
+            { text: "Give a complimentary meal.", response: "OMG! This place is ICONIC! FOLLOW THEM!", reputation: 15, money: -15 },
+            { text: "Offer a small influencer discount.", response: "Not bad. I'll tag your restaurant!", reputation: 8, money: -5 },
+            { text: "Politely decline.", response: "Wow. Cancelled. Absolutely cancelled.", reputation: -8, money: 0 }
         ]
     },
     {
@@ -139,57 +64,52 @@ const customerTemplates = [
         personality: "The Walking Disaster",
         dialogue: "I accidentally spilled my drink, broke a plate and sat on my own food. Anyway, where's my dessert?",
         choices: [
-            {
-                text: "Help him clean up.",
-                response: "You're a legend! My bad, boss!",
-                reputation: 10,
-                money: -5
-            },
-            {
-                text: "Charge him for the broken plate.",
-                response: "Fair enough. I did sit on it.",
-                reputation: 3,
-                money: 10
-            },
-            {
-                text: "Ask him to leave.",
-                response: "FINE! I'll take my chaos elsewhere!",
-                reputation: -12,
-                money: 0
-            }
+            { text: "Help him clean up.", response: "You're a legend! My bad, boss!", reputation: 10, money: -5 },
+            { text: "Charge him for the broken plate.", response: "Fair enough. I did sit on it.", reputation: 3, money: 10 },
+            { text: "Ask him to leave.", response: "FINE! I'll take my chaos elsewhere!", reputation: -12, money: 0 }
         ]
     }
 ];
 
-// *** Randomized customer arrival settings.
+// Arrival settings.
 const CUSTOMER_LEVEL_SETTINGS = {
     minimumCustomers: 8,
     maximumCustomers: 14,
+    firstArrivalSeconds: 2,
     minimumArrivalSeconds: 8,
-    maximumArrivalSeconds: 18,
-    firstArrivalSeconds: 2
+    maximumArrivalSeconds: 18
 };
 
-// Current customer information.
+// Customer system state.
 let currentCustomer = null;
-let lastCustomerIndex = -1;
-let customerAnswered = false;
-
-// *** Arrival and queue state.
 let customerQueue = [];
 let customerArrivalTimer = null;
-let customerLevelActive = false;
-let customerLevelComplete = false;
+
 let customerLevelNumber = 1;
 let customerArrivalCount = 0;
 let customerLevelTarget = 0;
+let conversationsCompleted = 0;
 
-// *** Generate a random whole number between two limits.
-function randomCustomerNumber(minimum, maximum) {
-    return Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
+let customerLevelActive = false;
+let customerLevelComplete = false;
+let customerAnswered = false;
+let lastCustomerIndex = -1;
+
+// Staff monitoring state.
+const customerStaffStatus = {
+    bella: "Waiting",
+    marcus: "Waiting"
+};
+
+let bellaSeated = 0;
+let marcusOrdersTaken = 0;
+
+// Random number generator.
+function randomCustomerNumber(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// *** Create a customer instance without changing the original template.
+// Create a customer without modifying the original template.
 function createCustomerInstance() {
     let index;
 
@@ -210,7 +130,270 @@ function createCustomerInstance() {
     };
 }
 
-// *** Update customer arrival information in the game state.
+// Create the monitoring dashboard.
+function createCustomerDashboard() {
+    if (document.getElementById("hivemind-customer-dashboard")) return;
+
+    const dashboard = document.createElement("section");
+
+    dashboard.id = "hivemind-customer-dashboard";
+
+    dashboard.innerHTML = `
+        <div class="hive-monitor-header">
+            <div>
+                <h2>📊 Restaurant Operations</h2>
+                <p>Live customer monitoring</p>
+            </div>
+            <span id="hive-monitor-status">STARTING</span>
+        </div>
+
+        <div class="hive-monitor-grid">
+            <div class="hive-monitor-card">
+                <span>Current Level</span>
+                <strong id="hive-level">1</strong>
+            </div>
+
+            <div class="hive-monitor-card">
+                <span>Customers Arrived</span>
+                <strong id="hive-arrived">0/0</strong>
+            </div>
+
+            <div class="hive-monitor-card">
+                <span>Waiting Queue</span>
+                <strong id="hive-waiting">0</strong>
+            </div>
+
+            <div class="hive-monitor-card">
+                <span>Conversations</span>
+                <strong id="hive-conversations">0</strong>
+            </div>
+
+            <div class="hive-monitor-card">
+                <span>Orders Completed</span>
+                <strong id="hive-orders">0</strong>
+            </div>
+
+            <div class="hive-monitor-card">
+                <span>Customers Served</span>
+                <strong id="hive-served">0</strong>
+            </div>
+        </div>
+
+        <div class="hive-monitor-progress">
+            <div class="hive-monitor-progress-heading">
+                <span>Level Arrival Progress</span>
+                <span id="hive-percentage">0%</span>
+            </div>
+            <div class="hive-monitor-track">
+                <div id="hive-progress-bar"></div>
+            </div>
+        </div>
+
+        <div class="hive-monitor-staff">
+            <h3>Staff Activity</h3>
+            <div>
+                <span>🪑 Bella — Receptionist</span>
+                <strong id="hive-bella-status">Waiting</strong>
+            </div>
+            <div>
+                <span>📝 Marcus — Waiter</span>
+                <strong id="hive-marcus-status">Waiting</strong>
+            </div>
+            <p id="hive-staff-note">
+                Staff activity will update when their systems are connected.
+            </p>
+        </div>
+
+        <div class="hive-monitor-current">
+            <h3>Current Customer</h3>
+            <p id="hive-current-customer">No active customer</p>
+        </div>
+    `;
+
+    const style = document.createElement("style");
+
+    style.textContent = `
+        #hivemind-customer-dashboard {
+            margin: 16px 0;
+            padding: 18px;
+            border-radius: 14px;
+            background: #17232b;
+            color: #edf7f7;
+            font-family: inherit;
+        }
+
+        #hivemind-customer-dashboard * {
+            box-sizing: border-box;
+        }
+
+        .hive-monitor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .hive-monitor-header h2 {
+            margin: 0 0 4px;
+        }
+
+        .hive-monitor-header p,
+        #hive-staff-note {
+            color: #aabdc2;
+            font-size: 12px;
+        }
+
+        #hive-monitor-status {
+            padding: 6px 10px;
+            border-radius: 20px;
+            background: #244a40;
+            color: #8ef0bd;
+            font-size: 11px;
+        }
+
+        .hive-monitor-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .hive-monitor-card {
+            background: #22333d;
+            padding: 13px;
+            border-radius: 9px;
+            min-width: 0;
+        }
+
+        .hive-monitor-card span {
+            display: block;
+            color: #b2c4ca;
+            font-size: 11px;
+        }
+
+        .hive-monitor-card strong {
+            display: block;
+            margin-top: 7px;
+            font-size: 22px;
+        }
+
+        .hive-monitor-progress {
+            margin-top: 18px;
+        }
+
+        .hive-monitor-progress-heading {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .hive-monitor-track {
+            height: 9px;
+            background: #34454c;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #hive-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: #56d5ae;
+            transition: width .3s;
+        }
+
+        .hive-monitor-staff,
+        .hive-monitor-current {
+            margin-top: 18px;
+            padding-top: 12px;
+            border-top: 1px solid #34454c;
+        }
+
+        .hive-monitor-staff h3,
+        .hive-monitor-current h3 {
+            font-size: 14px;
+        }
+
+        .hive-monitor-staff > div {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 8px 0;
+            font-size: 12px;
+        }
+
+        .hive-monitor-staff strong {
+            color: #8ef0bd;
+        }
+
+        @media (max-width: 480px) {
+            .hive-monitor-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+    `;
+
+    document.head.appendChild(style);
+
+    // Put the dashboard above the existing customer area.
+    const customerContainer = document.getElementById("customer-content");
+
+    if (customerContainer && customerContainer.parentElement) {
+        customerContainer.parentElement.insertBefore(
+            dashboard,
+            customerContainer
+        );
+    } else {
+        document.body.prepend(dashboard);
+    }
+}
+
+// Update the monitoring dashboard.
+function updateCustomerDashboard() {
+    const state = window.gameState || {};
+
+    const percentage = customerLevelTarget > 0
+        ? Math.round(customerArrivalCount / customerLevelTarget * 100)
+        : 0;
+
+    const values = {
+        "hive-level": customerLevelNumber,
+        "hive-arrived": `${customerArrivalCount}/${customerLevelTarget}`,
+        "hive-waiting": customerQueue.length,
+        "hive-conversations": conversationsCompleted,
+        "hive-orders": state.ordersCompleted || 0,
+        "hive-served": state.customersServed || 0,
+        "hive-percentage": `${percentage}%`,
+        "hive-bella-status": customerStaffStatus.bella,
+        "hive-marcus-status": customerStaffStatus.marcus,
+        "hive-current-customer": currentCustomer
+            ? `${currentCustomer.emoji} ${currentCustomer.name}`
+            : "No active customer"
+    };
+
+    Object.entries(values).forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+    });
+
+    const progress = document.getElementById("hive-progress-bar");
+
+    if (progress) {
+        progress.style.width = `${percentage}%`;
+    }
+
+    const status = document.getElementById("hive-monitor-status");
+
+    if (status) {
+        status.textContent = customerLevelComplete
+            ? "ARRIVALS COMPLETE"
+            : customerLevelActive
+                ? "LIVE"
+                : "STOPPED";
+    }
+}
+
+// Update shared game state.
 function updateCustomerArrivalState() {
     const state = window.gameState;
 
@@ -222,6 +405,7 @@ function updateCustomerArrivalState() {
         0,
         customerLevelTarget - customerArrivalCount
     );
+    state.conversationsCompleted = conversationsCompleted;
 
     if (typeof window.updateCustomerProgressDisplay === "function") {
         window.updateCustomerProgressDisplay();
@@ -230,9 +414,11 @@ function updateCustomerArrivalState() {
     if (typeof window.saveGame === "function") {
         window.saveGame();
     }
+
+    updateCustomerDashboard();
 }
 
-// *** Show arrival and queue information in the customer area.
+// Display queue information in the existing customer section.
 function renderCustomerQueueStatus() {
     const container = document.getElementById("customer-content");
 
@@ -243,39 +429,31 @@ function renderCustomerQueueStatus() {
     if (!status) {
         status = document.createElement("div");
         status.id = "customer-arrival-status";
-        status.className = "customer-arrival-status";
-
         container.prepend(status);
     }
-
-    const waitingCount = customerQueue.length;
 
     status.innerHTML = `
         <p><strong>Level ${customerLevelNumber}</strong></p>
         <p>Customers arrived: ${customerArrivalCount}/${customerLevelTarget}</p>
-        <p>Customers waiting: ${waitingCount}</p>
-        <p>${customerLevelComplete
-            ? "All customers have arrived for this level."
-            : "Customers are arriving automatically..."
-        }</p>
+        <p>Customers waiting: ${customerQueue.length}</p>
     `;
+
+    updateCustomerDashboard();
 }
 
-// *** Schedule the next automatic customer arrival.
-function scheduleNextCustomerArrival(delaySeconds) {
+// Schedule the next customer.
+function scheduleNextCustomerArrival(seconds) {
     if (!customerLevelActive || customerLevelComplete) return;
 
-    if (customerArrivalTimer) {
-        clearTimeout(customerArrivalTimer);
-    }
+    clearTimeout(customerArrivalTimer);
 
     customerArrivalTimer = setTimeout(() => {
         customerArrivalTimer = null;
         arriveNextCustomer();
-    }, delaySeconds * 1000);
+    }, seconds * 1000);
 }
 
-// *** Add one customer to the restaurant.
+// Customer arrival.
 function arriveNextCustomer() {
     if (!customerLevelActive || customerLevelComplete) return;
 
@@ -290,15 +468,7 @@ function arriveNextCustomer() {
     customerQueue.push(customer);
 
     updateCustomerArrivalState();
-    renderCustomerQueueStatus();
 
-    console.log(
-        `🚪 Customer arrived: ${customer.name}. ` +
-        `Customer ${customerArrivalCount}/${customerLevelTarget} ` +
-        `for level ${customerLevelNumber}.`
-    );
-
-    // *** Notify other systems that a customer has arrived.
     window.dispatchEvent(new CustomEvent("hivemind:customerArrived", {
         detail: {
             customer: { ...customer },
@@ -308,7 +478,10 @@ function arriveNextCustomer() {
         }
     }));
 
-    // *** Display the next waiting customer if nobody is being handled.
+    console.log(
+        `Customer arrived: ${customer.name} (${customerArrivalCount}/${customerLevelTarget})`
+    );
+
     if (!currentCustomer) {
         nextCustomer();
     }
@@ -320,60 +493,53 @@ function arriveNextCustomer() {
         return;
     }
 
-    const nextDelay = randomCustomerNumber(
-        CUSTOMER_LEVEL_SETTINGS.minimumArrivalSeconds,
-        CUSTOMER_LEVEL_SETTINGS.maximumArrivalSeconds
+    scheduleNextCustomerArrival(
+        randomCustomerNumber(
+            CUSTOMER_LEVEL_SETTINGS.minimumArrivalSeconds,
+            CUSTOMER_LEVEL_SETTINGS.maximumArrivalSeconds
+        )
     );
-
-    scheduleNextCustomerArrival(nextDelay);
 }
 
-// *** Stop arrivals after the randomized target is reached.
+// Complete automatic arrivals.
 function completeCustomerArrivals() {
     if (customerLevelComplete) return;
 
     customerLevelComplete = true;
     customerLevelActive = false;
 
-    if (customerArrivalTimer) {
-        clearTimeout(customerArrivalTimer);
-        customerArrivalTimer = null;
-    }
+    clearTimeout(customerArrivalTimer);
+    customerArrivalTimer = null;
 
     renderCustomerQueueStatus();
+    updateCustomerDashboard();
 
-    console.log(
-        `✅ All ${customerLevelTarget} customers have arrived ` +
-        `for level ${customerLevelNumber}.`
-    );
-
-    window.dispatchEvent(new CustomEvent("hivemind:customerArrivalsComplete", {
-        detail: {
-            level: customerLevelNumber,
-            target: customerLevelTarget,
-            arrived: customerArrivalCount
+    window.dispatchEvent(new CustomEvent(
+        "hivemind:customerArrivalsComplete",
+        {
+            detail: {
+                level: customerLevelNumber,
+                target: customerLevelTarget,
+                arrived: customerArrivalCount
+            }
         }
-    }));
+    ));
+
+    console.log("All customers have arrived for this level.");
 
     if (typeof window.saveGame === "function") {
         window.saveGame();
     }
 }
 
-// *** Start or restart automatic customer arrivals for a level.
+// Start a level.
 function startCustomerLevel(levelNumber) {
-    const state = window.gameState;
-
-    if (!state) {
-        console.error("Customer system: gameState has not been initialised.");
+    if (!window.gameState) {
+        console.error("Game state is not ready.");
         return;
     }
 
-    // *** Stop any previous level's arrival timer.
-    if (customerArrivalTimer) {
-        clearTimeout(customerArrivalTimer);
-        customerArrivalTimer = null;
-    }
+    clearTimeout(customerArrivalTimer);
 
     customerLevelNumber = Math.max(1, Number(levelNumber) || 1);
 
@@ -385,12 +551,20 @@ function startCustomerLevel(levelNumber) {
 
     customerQueue = [];
     currentCustomer = null;
+    conversationsCompleted = 0;
+
     customerAnswered = false;
     customerLevelComplete = false;
     customerLevelActive = true;
     lastCustomerIndex = -1;
 
-    state.level = customerLevelNumber;
+    bellaSeated = 0;
+    marcusOrdersTaken = 0;
+
+    customerStaffStatus.bella = "Waiting";
+    customerStaffStatus.marcus = "Waiting";
+
+    window.gameState.level = customerLevelNumber;
 
     updateCustomerArrivalState();
 
@@ -402,83 +576,67 @@ function startCustomerLevel(levelNumber) {
                 <h2>🍽️ Level ${customerLevelNumber}</h2>
                 <p>Your restaurant is opening!</p>
                 <p>Today's customer target: <strong>${customerLevelTarget}</strong></p>
-                <p>Customers will begin arriving shortly.</p>
             </div>
         `;
     }
 
+    createCustomerDashboard();
+    updateCustomerDashboard();
     renderCustomerQueueStatus();
 
     console.log(
-        `🍽️ Level ${customerLevelNumber} started. ` +
-        `Random customer target: ${customerLevelTarget}.`
+        `Level ${customerLevelNumber} started. Target: ${customerLevelTarget}`
     );
 
-    // *** The first customer arrives shortly after the level begins.
     scheduleNextCustomerArrival(
         CUSTOMER_LEVEL_SETTINGS.firstArrivalSeconds
     );
 }
 
-// *** Stop the arrival timer. Used when resetting or leaving a level.
+// Stop arrivals.
 function stopCustomerLevel() {
     customerLevelActive = false;
 
-    if (customerArrivalTimer) {
-        clearTimeout(customerArrivalTimer);
-        customerArrivalTimer = null;
-    }
+    clearTimeout(customerArrivalTimer);
+    customerArrivalTimer = null;
 
-    console.log("Customer arrivals stopped.");
+    updateCustomerDashboard();
 }
 
-// Display the next waiting customer.
+// Display next customer.
 function nextCustomer() {
-    // *** Do not replace a customer who is still being handled.
-    if (currentCustomer && !customerAnswered) {
-        return;
-    }
+    if (currentCustomer && !customerAnswered) return;
 
     currentCustomer = customerQueue.shift() || null;
     customerAnswered = false;
 
     if (!currentCustomer) {
-        renderCustomerQueueStatus();
-
         const container = document.getElementById("customer-content");
 
-        if (container && !customerLevelComplete) {
+        if (container) {
             container.innerHTML = `
-                <div class="customer-waiting">
-                    <h2>🚪 Waiting for customers...</h2>
-                    <p>The restaurant is open. New customers will arrive automatically.</p>
-                </div>
+                <h2>${customerLevelComplete
+                    ? "✅ All customers have arrived!"
+                    : "🚪 Waiting for customers..."
+                }</h2>
+                <p>${customerLevelComplete
+                    ? "Finish serving the remaining customers."
+                    : "New customers will arrive automatically."
+                }</p>
             `;
-
-            renderCustomerQueueStatus();
-        } else if (container && customerLevelComplete) {
-            container.innerHTML = `
-                <div class="customer-level-arrivals-complete">
-                    <h2>✅ All customers have arrived!</h2>
-                    <p>Finish serving the remaining customers.</p>
-                </div>
-            `;
-
-            renderCustomerQueueStatus();
         }
 
+        renderCustomerQueueStatus();
         return;
     }
 
     currentCustomer.status = "Being handled";
 
     renderCustomer();
-    renderCustomerQueueStatus();
-
-    console.log(`💬 Now handling ${currentCustomer.name}.`);
+    updateCustomerDashboard();
 }
 
-// Render the customer conversation.
+// Render conversation.
 function renderCustomer() {
     const container = document.getElementById("customer-content");
 
@@ -511,11 +669,10 @@ function renderCustomer() {
         </div>
     `;
 
-    // *** Keep arrival information visible after rendering a conversation.
     renderCustomerQueueStatus();
 }
 
-// Process the player's customer decision.
+// Process response.
 function chooseCustomerResponse(choiceIndex) {
     if (!currentCustomer || customerAnswered) return;
 
@@ -526,19 +683,18 @@ function chooseCustomerResponse(choiceIndex) {
     customerAnswered = true;
     currentCustomer.status = "Conversation completed";
 
-    // Update restaurant reputation.
-    gameState.reputation = Math.max(
+    const state = window.gameState;
+
+    state.reputation = Math.max(
         0,
-        Math.min(100, (gameState.reputation ?? 50) + choice.reputation)
+        Math.min(100, state.reputation + choice.reputation)
     );
 
-    // Update restaurant money.
-    gameState.money = Math.max(
-        0,
-        gameState.money + choice.money
-    );
+    state.money = Math.max(0, state.money + choice.money);
 
-    // Refresh resources and save progress.
+    conversationsCompleted++;
+    state.conversationsCompleted = conversationsCompleted;
+
     if (typeof window.updateResources === "function") {
         window.updateResources();
     }
@@ -547,9 +703,7 @@ function chooseCustomerResponse(choiceIndex) {
         window.saveGame();
     }
 
-    // Display the customer's reaction.
     const container = document.getElementById("customer-content");
-
     const result = container?.querySelector("#customer-result");
 
     if (result) {
@@ -559,68 +713,88 @@ function chooseCustomerResponse(choiceIndex) {
                 <p>${choice.response}</p>
                 <p>⭐ Reputation: ${choice.reputation >= 0 ? "+" : ""}${choice.reputation}</p>
                 <p>💰 Money: ${choice.money >= 0 ? "+" : ""}${choice.money}</p>
-                <h3>Current Reputation: ${gameState.reputation}/100</h3>
-                <button onclick="nextCustomer()">
-                    Next Customer ➜
-                </button>
+                <h3>Current Reputation: ${state.reputation}/100</h3>
+                <button onclick="nextCustomer()">Next Customer ➜</button>
             </div>
         `;
     }
 
-    // Disable the previous choices.
     container?.querySelectorAll(".customer-choices button").forEach(button => {
         button.disabled = true;
     });
 
-    // *** Tell other systems that the conversation has finished.
-    window.dispatchEvent(new CustomEvent("hivemind:customerConversationCompleted", {
-        detail: {
-            customer: { ...currentCustomer },
-            choice: { ...choice },
-            level: customerLevelNumber
+    window.dispatchEvent(new CustomEvent(
+        "hivemind:customerConversationCompleted",
+        {
+            detail: {
+                customer: { ...currentCustomer },
+                choice: { ...choice },
+                level: customerLevelNumber
+            }
         }
-    }));
+    ));
 
-    renderCustomerQueueStatus();
+    updateCustomerDashboard();
 }
 
-// *** Get a read-only snapshot of customer arrival progress.
+// Staff integration hooks.
+// These update the dashboard when Bella and Marcus are connected.
+function updateBellaActivity(status, seatedCount) {
+    customerStaffStatus.bella = status;
+    if (Number.isFinite(seatedCount)) bellaSeated = seatedCount;
+
+    updateCustomerDashboard();
+}
+
+function updateMarcusActivity(status, ordersTaken) {
+    customerStaffStatus.marcus = status;
+    if (Number.isFinite(ordersTaken)) marcusOrdersTaken = ordersTaken;
+
+    updateCustomerDashboard();
+}
+
+// Read-only customer status.
 function getCustomerLevelStatus() {
     return {
         level: customerLevelNumber,
         target: customerLevelTarget,
         arrived: customerArrivalCount,
         waiting: customerQueue.length,
+        conversationsCompleted,
         remaining: Math.max(0, customerLevelTarget - customerArrivalCount),
         active: customerLevelActive,
         arrivalsComplete: customerLevelComplete,
         currentCustomer: currentCustomer
             ? { ...currentCustomer }
-            : null
+            : null,
+        bella: {
+            status: customerStaffStatus.bella,
+            seated: bellaSeated
+        },
+        marcus: {
+            status: customerStaffStatus.marcus,
+            ordersTaken: marcusOrdersTaken
+        }
     };
 }
 
-// *** Expose functions so game.js and other systems can use them.
+// Expose functions.
 window.customerTemplates = customerTemplates;
-window.initialiseCustomers = initialiseCustomers;
 window.startCustomerLevel = startCustomerLevel;
 window.stopCustomerLevel = stopCustomerLevel;
 window.nextCustomer = nextCustomer;
 window.chooseCustomerResponse = chooseCustomerResponse;
 window.getCustomerLevelStatus = getCustomerLevelStatus;
+window.updateCustomerDashboard = updateCustomerDashboard;
+window.updateBellaActivity = updateBellaActivity;
+window.updateMarcusActivity = updateMarcusActivity;
 
-// Start the customer system after the main game setup has run.
+// Initialise customer system after game state.
 function initialiseCustomers() {
-    if (!window.gameState) {
-        console.error("Customer system: gameState has not been initialised.");
-        return;
-    }
+    if (!window.gameState) return;
 
-    if (typeof window.gameState.reputation !== "number") {
-        window.gameState.reputation = 50;
-    }
+    createCustomerDashboard();
 
-    // *** Begin the current level with a newly randomized customer target.
     startCustomerLevel(window.gameState.level || 1);
 }
 
