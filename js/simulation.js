@@ -51,8 +51,79 @@
         nextOrderId: 1,
         completed: 0,
         interval: null,
-        running: false
+        running: false,
+        reservedIngredients: 0,
+        initialised: false
     };
+
+    /* -----------------------------------------------------
+       UTILITIES
+       ----------------------------------------------------- */
+
+    // *** Escape dynamic text before inserting it into HTML.
+    function escapeHTML(value) {
+        return String(value ?? "").replace(/[&<>"']/g, character => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#039;"
+        })[character]);
+    }
+
+    function getGameState() {
+        return window.gameState || null;
+    }
+
+    function getStaff() {
+        return Array.isArray(window.staffMembers)
+            ? window.staffMembers
+            : [];
+    }
+
+    function getStaffName(staff, index) {
+        return staff?.name ||
+            staff?.fullName ||
+            `Staff ${index + 1}`;
+    }
+
+    // *** Use stable IDs when available, while retaining index compatibility.
+    function getStaffId(staff, index) {
+        return staff?.id ??
+            staff?.staffId ??
+            `staff-index-${index}`;
+    }
+
+    function findStaffById(staffId) {
+        const members = getStaff();
+
+        return members.findIndex((member, index) =>
+            String(getStaffId(member, index)) === String(staffId)
+        );
+    }
+
+    function isStaffAvailable(staff) {
+        if (!staff) return false;
+
+        const status = String(staff.status || "").toLowerCase();
+
+        return status !== "working" &&
+            status !== "unavailable" &&
+            status !== "resting" &&
+            Number(staff.energy ?? 100) > 0;
+    }
+
+    function getAvailableIngredients() {
+        const state = getGameState();
+
+        if (!state) return 0;
+
+        return Math.max(
+            0,
+            Number(state.ingredients || 0) -
+            simulation.reservedIngredients
+        );
+    }
 
     /* -----------------------------------------------------
        INTERFACE
@@ -106,6 +177,11 @@
                 </div>
             </div>
 
+            <div id="shift-resource-status">
+                Available ingredients:
+                <strong id="shift-ingredients">0</strong>
+            </div>
+
             <div class="shift-orders-heading">
                 <h3>Customer Orders</h3>
                 <span id="active-order-count">0 active</span>
@@ -155,7 +231,9 @@
             assigned: false,
             completed: false,
             staffIndex: null,
-            staffName: ""
+            staffId: null,
+            staffName: "",
+            ingredientsReserved: false
         };
 
         simulation.orders.push(order);
@@ -163,6 +241,8 @@
         showMessage(`📥 New order: ${dish.name}!`);
 
         renderOrders();
+
+        return order;
     }
 
     function renderOrders() {
@@ -174,8 +254,21 @@
             order => !order.completed
         );
 
-        document.getElementById("active-order-count").textContent =
-            `${activeOrders.length} active`;
+        const countElement =
+            document.getElementById("active-order-count");
+
+        if (countElement) {
+            countElement.textContent =
+                `${activeOrders.length} active`;
+        }
+
+        const ingredientsElement =
+            document.getElementById("shift-ingredients");
+
+        if (ingredientsElement) {
+            ingredientsElement.textContent =
+                getAvailableIngredients();
+        }
 
         if (simulation.orders.length === 0) {
             container.innerHTML = `
@@ -185,6 +278,8 @@
                     <p>Start your kitchen service by receiving an order.</p>
                 </div>
             `;
+
+            updateStationDisplay();
             return;
         }
 
@@ -193,10 +288,14 @@
 
             return `
                 <article class="shift-order">
+
                     <div class="order-card-heading">
-                        <span class="order-food-icon">${dish.icon}</span>
+                        <span class="order-food-icon">
+                            ${dish.icon}
+                        </span>
+
                         <div>
-                            <h4>${dish.name}</h4>
+                            <h4>${escapeHTML(dish.name)}</h4>
                             <small>Order #${order.id}</small>
                         </div>
                     </div>
@@ -204,6 +303,7 @@
                     <div class="order-details">
                         <span>🥕 ${dish.ingredients} ingredients</span>
                         <span>💰 $${dish.reward}</span>
+                        <span>⏱️ ${dish.time}s</span>
                     </div>
 
                     ${
@@ -233,15 +333,25 @@
                                     ></div>
                                 </div>
 
-                                <small>${Math.floor(order.progress)}% prepared</small>
+                                <small>
+                                    ${Math.floor(order.progress)}% prepared
+                                </small>
                             </div>
 
                             ${
                                 order.assigned
                                 ? `
                                     <div class="order-working">
-                                        👨‍🍳 ${order.staffName} is working
+                                        👨‍🍳 ${escapeHTML(order.staffName)}
+                                        is working
                                     </div>
+
+                                    <button
+                                        data-cancel-order="${order.id}"
+                                        class="cancel-order-btn"
+                                    >
+                                        Cancel Assignment
+                                    </button>
                                 `
                                 : `
                                     <button
@@ -254,6 +364,7 @@
                             }
                         `
                     }
+
                 </article>
             `;
         }).join("");
@@ -265,11 +376,18 @@
                 });
             });
 
+        container.querySelectorAll("[data-cancel-order]")
+            .forEach(button => {
+                button.addEventListener("click", () => {
+                    cancelOrder(Number(button.dataset.cancelOrder));
+                });
+            });
+
         updateStationDisplay();
     }
 
     function getStaffOptions() {
-        const members = window.staffMembers || [];
+        const members = getStaff();
 
         if (!members.length) {
             return `<option value="">No staff available</option>`;
@@ -279,21 +397,16 @@
             <option value="">Choose staff member</option>
 
             ${members.map((member, index) => {
-                const name =
-                    member.name ||
-                    member.fullName ||
-                    `Staff ${index + 1}`;
-
-                const unavailable =
-                    member.status === "Working" ||
-                    member.energy <= 0;
+                const name = getStaffName(member, index);
+                const unavailable = !isStaffAvailable(member);
 
                 return `
                     <option
                         value="${index}"
                         ${unavailable ? "disabled" : ""}
                     >
-                        ${name}${unavailable ? " (Unavailable)" : ""}
+                        ${escapeHTML(name)}
+                        ${unavailable ? " (Unavailable)" : ""}
                     </option>
                 `;
             }).join("")}
@@ -309,7 +422,7 @@
             item => item.id === orderId
         );
 
-        if (!order || order.assigned || order.completed) return;
+        if (!order || order.assigned || order.completed) return false;
 
         const select = document.querySelector(
             `[data-order-staff="${orderId}"]`
@@ -317,43 +430,114 @@
 
         if (!select || select.value === "") {
             showMessage("Please choose a staff member.");
-            return;
+            return false;
         }
 
         const staffIndex = Number(select.value);
-        const staff = window.staffMembers?.[staffIndex];
+        const staff = getStaff()[staffIndex];
 
         if (!staff) {
             showMessage("Staff member could not be found.");
-            return;
+            return false;
         }
 
-        const staffName =
-            staff.name ||
-            staff.fullName ||
-            `Staff ${staffIndex + 1}`;
+        const staffName = getStaffName(staff, staffIndex);
 
-        if (staff.status === "Working" || staff.energy <= 0) {
+        if (!isStaffAvailable(staff)) {
             showMessage(`${staffName} is unavailable.`);
-            return;
+            renderOrders();
+            return false;
         }
 
+        // *** Check ingredients before allowing work to begin.
+        if (getAvailableIngredients() < order.dish.ingredients) {
+            showMessage(
+                `⚠️ Not enough available ingredients for ${order.dish.name}!`
+            );
+            return false;
+        }
+
+        // *** Preserve compatibility with the existing StaffActivity system.
         if (
             window.StaffActivity &&
-            !window.StaffActivity.start(staffIndex, order.dish.name)
+            typeof window.StaffActivity.start === "function"
         ) {
-            showMessage(`${staffName} cannot start this task.`);
-            return;
+            if (!window.StaffActivity.start(staffIndex, order.dish.name)) {
+                showMessage(`${staffName} cannot start this task.`);
+                return false;
+            }
         }
 
         order.staffIndex = staffIndex;
+        order.staffId = getStaffId(staff, staffIndex);
         order.staffName = staffName;
         order.assigned = true;
+
+        // *** Reserve ingredients to prevent multiple orders
+        // *** from spending the same ingredients.
+        order.ingredientsReserved = true;
+        simulation.reservedIngredients += order.dish.ingredients;
 
         showMessage(`👨‍🍳 ${staffName} started ${order.dish.name}.`);
 
         renderOrders();
         startSimulation();
+
+        return true;
+    }
+
+    // *** Release reserved ingredients and staff when an assignment is cancelled.
+    function releaseOrderResources(order) {
+        if (order.ingredientsReserved) {
+            simulation.reservedIngredients = Math.max(
+                0,
+                simulation.reservedIngredients - order.dish.ingredients
+            );
+
+            order.ingredientsReserved = false;
+        }
+
+        if (order.staffIndex !== null) {
+            const currentIndex = order.staffId !== null
+                ? findStaffById(order.staffId)
+                : -1;
+
+            const staffIndex = currentIndex >= 0
+                ? currentIndex
+                : order.staffIndex;
+
+            window.StaffActivity?.cancel?.(staffIndex);
+        }
+
+        order.assigned = false;
+        order.staffIndex = null;
+        order.staffId = null;
+        order.staffName = "";
+        order.progress = 0;
+    }
+
+    function cancelOrder(orderId) {
+        const order = simulation.orders.find(
+            item => item.id === orderId
+        );
+
+        if (!order || !order.assigned || order.completed) return false;
+
+        releaseOrderResources(order);
+
+        showMessage(`Order #${order.id} assignment cancelled.`);
+
+        renderOrders();
+
+        const hasActiveOrders = simulation.orders.some(
+            item => item.assigned && !item.completed
+        );
+
+        if (!hasActiveOrders) {
+            stopSimulation();
+        }
+
+        return true;
     }
 
     /* -----------------------------------------------------
@@ -366,16 +550,22 @@
         simulation.running = true;
 
         simulation.interval = setInterval(() => {
-            const state = window.gameState;
+            const state = getGameState();
+
+            if (!state) {
+                stopSimulation();
+                return;
+            }
 
             simulation.orders.forEach(order => {
                 if (!order.assigned || order.completed) return;
 
-                if (!state) return;
+                const stationLevel = Math.max(
+                    0,
+                    Number(state.kitchen?.[order.dish.station] || 0)
+                );
 
-                const stationLevel =
-                    state.kitchen?.[order.dish.station] || 0;
-
+                // *** Kitchen station upgrades increase preparation speed.
                 const speed = 1 + stationLevel * 0.15;
 
                 order.progress +=
@@ -407,29 +597,35 @@
     function completeOrder(order) {
         if (order.completed) return;
 
-        const state = window.gameState;
+        const state = getGameState();
 
         if (!state) return;
 
-        if (state.ingredients < order.dish.ingredients) {
-            order.assigned = false;
-            order.progress = 0;
+        // *** Ingredients were reserved when the order was assigned.
+        // *** Check again in case another system changed the resources.
+        if (Number(state.ingredients || 0) < order.dish.ingredients) {
+            releaseOrderResources(order);
 
-            window.StaffActivity?.cancel(order.staffIndex);
-
-            order.staffIndex = null;
-            order.staffName = "";
-
-            showMessage("⚠️ Not enough ingredients!");
+            showMessage("⚠️ Not enough ingredients! Order cancelled.");
 
             return;
         }
 
         order.completed = true;
 
-        /* *** Deduct ingredients and award money. */
+        // *** Deduct ingredients and award money.
         state.ingredients -= order.dish.ingredients;
-        state.money += order.dish.reward;
+        state.money = (Number(state.money) || 0) + order.dish.reward;
+
+        // *** Release the ingredient reservation without cancelling staff.
+        if (order.ingredientsReserved) {
+            simulation.reservedIngredients = Math.max(
+                0,
+                simulation.reservedIngredients - order.dish.ingredients
+            );
+
+            order.ingredientsReserved = false;
+        }
 
         state.ordersCompleted =
             (state.ordersCompleted || 0) + 1;
@@ -439,20 +635,30 @@
 
         simulation.completed++;
 
-        /* *** Release staff and award experience. */
-        window.StaffActivity?.finish(order.staffIndex);
+        // *** Release staff using their current position if their array moved.
+        if (order.staffIndex !== null) {
+            const currentIndex = order.staffId !== null
+                ? findStaffById(order.staffId)
+                : -1;
 
-        /* *** Reward restaurant reputation. */
+            const staffIndex = currentIndex >= 0
+                ? currentIndex
+                : order.staffIndex;
+
+            window.StaffActivity?.finish?.(staffIndex);
+        }
+
+        // *** Reward restaurant reputation.
         if (typeof window.changeReputation === "function") {
             window.changeReputation(2);
         } else {
             state.reputation = Math.min(
                 100,
-                (state.reputation || 0) + 2
+                (Number(state.reputation) || 0) + 2
             );
         }
 
-        /* *** Refresh resources and save. */
+        // *** Refresh resources and save.
         if (typeof window.updateResources === "function") {
             window.updateResources();
         }
@@ -461,8 +667,12 @@
             window.saveGame();
         }
 
-        document.getElementById("shift-completed").textContent =
-            simulation.completed;
+        const completedElement =
+            document.getElementById("shift-completed");
+
+        if (completedElement) {
+            completedElement.textContent = simulation.completed;
+        }
 
         showMessage(
             `🎉 ${order.staffName} completed ${order.dish.name}! +$${order.dish.reward}`
@@ -493,6 +703,14 @@
                     ? "👨‍🍳 In operation"
                     : "Available";
             }
+
+            const stationElement = document.querySelector(
+                `.shift-station[data-station="${station}"]`
+            );
+
+            if (stationElement) {
+                stationElement.classList.toggle("station-active", active);
+            }
         });
     }
 
@@ -517,17 +735,37 @@
         }
     }
 
+    // *** Refresh the interface when staff or resources change elsewhere.
+    function refresh() {
+        renderOrders();
+    }
+
     /* -----------------------------------------------------
        INITIALISATION
        ----------------------------------------------------- */
 
     function initialise() {
-        if (!window.gameState) {
-            console.error("Kitchen Harmony: gameState unavailable.");
+        if (simulation.initialised) return;
+
+        if (!getGameState()) {
+            console.error(
+                "Kitchen Harmony: gameState unavailable. " +
+                "Call KitchenSimulation.initialise() after game initialisation."
+            );
             return;
         }
 
         createInterface();
+
+        simulation.initialised = true;
+
+        const completedElement =
+            document.getElementById("shift-completed");
+
+        if (completedElement) {
+            completedElement.textContent = simulation.completed;
+        }
+
         renderOrders();
 
         console.log("Kitchen Harmony simulation is ready!");
@@ -537,10 +775,19 @@
         initialise,
         createOrder,
         assignOrder,
+        cancelOrder,
         renderOrders,
-        getState: () => simulation
+        refresh,
+        getState: () => simulation,
+        getAvailableIngredients
     };
 
-    document.addEventListener("DOMContentLoaded", initialise);
+    // *** Support scripts loaded before or after DOMContentLoaded.
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initialise);
+    } else {
+        initialise();
+    }
 
 })();
+
