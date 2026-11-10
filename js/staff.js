@@ -1,8 +1,8 @@
 
-/* =====================================================
-   HIVEMIND: KITCHEN HARMONY
-   STAFF MANAGEMENT SYSTEM
-   ===================================================== */
+// =====================================================
+// HIVEMIND: KITCHEN HARMONY
+// STAFF MANAGEMENT SYSTEM
+// =====================================================
 
 "use strict";
 
@@ -15,6 +15,7 @@ const staffMembers = [
         id: 1,
         name: "Bella",
         role: "Receptionist",
+        department: "Reception and Customer Service",
         emoji: "👩‍💼",
         personality: "Dramatic",
         skill: 75,
@@ -33,6 +34,7 @@ const staffMembers = [
         id: 2,
         name: "Marcus",
         role: "Waiter",
+        department: "Waiting and Serving",
         emoji: "🧑‍🍳",
         personality: "Overconfident",
         skill: 70,
@@ -49,9 +51,10 @@ const staffMembers = [
     },
     {
         id: 3,
-        name: "Chef Oliver",
-        role: "Chef",
-        emoji: "👨‍🍳",
+        name: "Chef Olivia",
+        role: "Main Chef",
+        department: "Main Cooking",
+        emoji: "👩‍🍳",
         personality: "Perfectionist",
         skill: 85,
         happiness: 75,
@@ -68,7 +71,8 @@ const staffMembers = [
     {
         id: 4,
         name: "Tina",
-        role: "Kitchen Assistant",
+        role: "Food Preparation Assistant",
+        department: "Food Preparation",
         emoji: "👩‍🍳",
         personality: "Energetic",
         skill: 65,
@@ -86,7 +90,8 @@ const staffMembers = [
     {
         id: 5,
         name: "Kevin",
-        role: "Cleaner",
+        role: "Kitchen Support",
+        department: "Kitchen Support",
         emoji: "🧹",
         personality: "Sarcastic",
         skill: 60,
@@ -104,7 +109,8 @@ const staffMembers = [
     {
         id: 6,
         name: "Sam",
-        role: "Kitchen Assistant",
+        role: "Kitchen Support",
+        department: "Kitchen Support",
         emoji: "🧑‍🍳",
         personality: "Sleepy",
         skill: 55,
@@ -173,7 +179,16 @@ function renderStaff() {
             <h3>${staff.name}</h3>
 
             <p>
-                ${staff.role} · ${staff.personality}
+                ${staff.role}
+            </p>
+
+            <p>
+                <small>${staff.department}</small>
+            </p>
+
+            <p>
+                <strong>Personality:</strong>
+                ${staff.personality}
             </p>
 
             <div class="staff-status">
@@ -304,10 +319,11 @@ function trainStaff(id) {
         return;
     }
 
+    // *** CHANGED: Training uses South African rand.
     const trainingCost = 50;
 
     if (Number(state.money || 0) < trainingCost) {
-        alert("Not enough money! Training costs $50.");
+        alert("Not enough money! Training costs R50.");
         return;
     }
 
@@ -396,7 +412,11 @@ function assignStaffTask(id) {
 function finishGeneralStaffTask(id) {
     const staff = getStaffById(id);
 
-    if (!staff || staff.status !== "Working") return;
+    if (
+        !staff ||
+        staff.status !== "Working" ||
+        staff.currentTask !== "General kitchen duties"
+    ) return;
 
     staffTaskTimers.delete(id);
 
@@ -438,13 +458,6 @@ function cancelStaffTask(id) {
 
     if (!staff || staff.status !== "Working") return false;
 
-    const timer = staffTaskTimers.get(id);
-
-    if (timer) {
-        clearTimeout(timer);
-        staffTaskTimers.delete(id);
-    }
-
     // *** Only cancel general tasks here.
     // *** KitchenSimulation manages restaurant order assignments.
     if (staff.currentTask !== "General kitchen duties") {
@@ -454,6 +467,13 @@ function cancelStaffTask(id) {
         );
 
         return false;
+    }
+
+    const timer = staffTaskTimers.get(id);
+
+    if (timer) {
+        clearTimeout(timer);
+        staffTaskTimers.delete(id);
     }
 
     staff.status = "Available";
@@ -648,7 +668,7 @@ function startStaffActivity(staffIndex, taskName) {
 function finishStaffActivity(staffIndex) {
     const member = staffMembers[staffIndex];
 
-    if (!member) return false;
+    if (!member || member.status !== "Working") return false;
 
     member.status = "Available";
     member.currentTask = null;
@@ -676,7 +696,7 @@ function finishStaffActivity(staffIndex) {
 function cancelStaffActivity(staffIndex) {
     const member = staffMembers[staffIndex];
 
-    if (!member) return false;
+    if (!member || member.status !== "Working") return false;
 
     member.status = "Available";
     member.currentTask = null;
@@ -728,4 +748,3 @@ if (document.readyState === "loading") {
 } else {
     initialiseStaffActivity();
 }
-
