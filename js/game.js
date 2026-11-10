@@ -9,7 +9,10 @@ window.gameState = {
     day: 1,
     level: 1,
     time: 8 * 60,
-    staff: 4,
+
+    // *** CHANGED: The game starts with six staff members.
+    staff: 6,
+
     customersServed: 0,
     ordersCompleted: 0,
 
@@ -26,6 +29,10 @@ window.gameState = {
 };
 
 const gameState = window.gameState;
+
+// *** NEW: Track whether the player has entered gameplay.
+window.gameStarted = false;
+
 
 // Update all existing resource displays.
 function updateResources() {
@@ -54,6 +61,7 @@ function updateResources() {
 
     updateCustomerProgressDisplay();
 }
+
 
 // Update customer counters wherever they appear.
 function updateCustomerProgressDisplay() {
@@ -99,6 +107,7 @@ function updateCustomerProgressDisplay() {
     }
 }
 
+
 // Save game.
 function saveGame() {
     try {
@@ -110,6 +119,7 @@ function saveGame() {
         console.error("Save failed:", error);
     }
 }
+
 
 // Load game.
 function loadGame() {
@@ -123,9 +133,18 @@ function loadGame() {
         Object.assign(gameState, savedState);
 
         gameState.level = Math.max(1, Number(gameState.level) || 1);
+
+        // *** CHANGED: Migrate older saves to the six-person starting team.
+        gameState.staff = Math.max(6, Number(gameState.staff) || 6);
+
+        gameState.money = Math.max(0, Number(gameState.money) || 0);
+        gameState.ingredients = Math.max(0, Number(gameState.ingredients) || 0);
+        gameState.reputation = Math.max(0, Math.min(100, Number(gameState.reputation) || 0));
+
         gameState.customersArrived = Number(gameState.customersArrived) || 0;
         gameState.customersTarget = Number(gameState.customersTarget) || 0;
         gameState.customersRemaining = Number(gameState.customersRemaining) || 0;
+
         gameState.conversationsCompleted =
             Number(gameState.conversationsCompleted) || 0;
 
@@ -145,6 +164,7 @@ function loadGame() {
     }
 }
 
+
 // Reset the game.
 function resetGame() {
     if (typeof window.stopCustomerLevel === "function") {
@@ -160,13 +180,17 @@ function resetGame() {
         day: 1,
         level: 1,
         time: 8 * 60,
-        staff: 4,
+
+        // *** CHANGED: Fresh games begin with six staff.
+        staff: 6,
+
         customersServed: 0,
         ordersCompleted: 0,
         customersArrived: 0,
         customersTarget: 0,
         customersRemaining: 0,
         conversationsCompleted: 0,
+
         kitchen: {
             stove: 0,
             fridge: 0,
@@ -184,6 +208,7 @@ function resetGame() {
     console.log("New game started!");
 }
 
+
 // Resource functions.
 function changeMoney(amount) {
     gameState.money = Math.max(0, gameState.money + amount);
@@ -191,23 +216,28 @@ function changeMoney(amount) {
     saveGame();
 }
 
+
 function changeIngredients(amount) {
     gameState.ingredients = Math.max(
         0,
         gameState.ingredients + amount
     );
+
     updateResources();
     saveGame();
 }
+
 
 function changeReputation(amount) {
     gameState.reputation = Math.max(
         0,
         Math.min(100, gameState.reputation + amount)
     );
+
     updateResources();
     saveGame();
 }
+
 
 // Advance to the next level.
 function advanceLevel() {
@@ -225,6 +255,78 @@ function advanceLevel() {
     }
 }
 
+
+// *** NEW: Enter the game from the main menu.
+function startHivemindGame() {
+    if (window.gameStarted) return;
+
+    window.gameStarted = true;
+
+    const menu = document.getElementById("main-menu");
+    const game = document.getElementById("game");
+
+    if (menu) menu.hidden = true;
+    if (game) game.hidden = false;
+
+    updateResources();
+
+    if (typeof window.startCustomerLevel === "function") {
+        window.startCustomerLevel(gameState.level);
+    }
+
+    console.log("HIVEMIND: Kitchen Harmony gameplay started.");
+}
+
+
+// *** NEW: Return to the main menu.
+function returnToMainMenu() {
+    if (typeof window.stopCustomerLevel === "function") {
+        window.stopCustomerLevel();
+    }
+
+    window.gameStarted = false;
+
+    const menu = document.getElementById("main-menu");
+    const game = document.getElementById("game");
+
+    if (menu) menu.hidden = false;
+    if (game) game.hidden = true;
+
+    saveGame();
+
+    console.log("Returned to main menu.");
+}
+
+
+// *** NEW: Main menu and settings controls.
+function initialiseMainMenu() {
+    const playButton = document.getElementById("play-game");
+    const settingsButton = document.getElementById("open-settings");
+    const closeSettingsButton = document.getElementById("close-settings");
+
+    const menu = document.getElementById("main-menu");
+    const settings = document.getElementById("settings-screen");
+
+    if (playButton) {
+        playButton.addEventListener("click", startHivemindGame);
+    }
+
+    if (settingsButton) {
+        settingsButton.addEventListener("click", () => {
+            if (menu) menu.hidden = true;
+            if (settings) settings.hidden = false;
+        });
+    }
+
+    if (closeSettingsButton) {
+        closeSettingsButton.addEventListener("click", () => {
+            if (settings) settings.hidden = true;
+            if (menu) menu.hidden = false;
+        });
+    }
+}
+
+
 // Expose functions.
 window.updateResources = updateResources;
 window.updateCustomerProgressDisplay = updateCustomerProgressDisplay;
@@ -236,14 +338,22 @@ window.changeIngredients = changeIngredients;
 window.changeReputation = changeReputation;
 window.advanceLevel = advanceLevel;
 
+// *** NEW: Expose main menu functions.
+window.startHivemindGame = startHivemindGame;
+window.returnToMainMenu = returnToMainMenu;
+
+
 // Initialise after the HTML is ready.
 document.addEventListener("DOMContentLoaded", () => {
+
     const loaded = loadGame();
 
     updateResources();
 
     if (!loaded) saveGame();
 
+    // *** NEW: Initialise the main menu.
+    initialiseMainMenu();
+
     console.log("HIVEMIND: Kitchen Harmony ready.");
 });
-
