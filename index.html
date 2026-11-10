@@ -2,248 +2,367 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#172b28">
+  <meta name="description" content="HIVEMIND: Kitchen Harmony — a restaurant management and staff instruction game.">
+  <title>HIVEMIND: Kitchen Harmony</title>
 
-    <!-- *** Browser information -->
-    <meta name="theme-color" content="#18232b">
-    <meta name="description" content="HIVEMIND: Kitchen Harmony - Manage your restaurant, staff and kitchen.">
-
-    <title>HIVEMIND: Kitchen Harmony</title>
-
-    <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/game.js" defer></script>
 </head>
-
 <body>
 
-    <!-- *** Main menu -->
-    <div id="main-menu" style="
-        position: fixed;
-        inset: 0;
-        z-index: 10000;
-        background: #18232b;
-        color: white;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        font-family: Arial, sans-serif;
-    ">
-
-        <div style="font-size: 65px;">🍳</div>
-
-        <h1 style="font-size: 48px; letter-spacing: 5px; margin-bottom: 5px;">
-            HIVEMIND
-        </h1>
-
-        <p style="letter-spacing: 7px; color: #75d6bd;">
-            KITCHEN HARMONY
-        </p>
-
-        <p style="color: #bdc9ce; margin-bottom: 35px;">
-            Lead your team. Manage your kitchen. Keep your customers happy.
-        </p>
-
-        <button id="play-game" style="
-            width: 220px;
-            padding: 16px;
-            margin: 8px;
-            border: none;
-            border-radius: 8px;
-            background: #75d6bd;
-            color: #18232b;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-        ">
-            PLAY GAME
-        </button>
-
-        <button id="open-settings" style="
-            width: 220px;
-            padding: 16px;
-            margin: 8px;
-            border: 1px solid #75d6bd;
-            border-radius: 8px;
-            background: transparent;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-        ">
-            SETTINGS
-        </button>
-
-        <p style="position: absolute; bottom: 15px; color: #82949b;">
-            HIVEMIND: Kitchen Harmony © 2026
-        </p>
-
+  <!-- MAIN MENU -->
+  <main id="mainMenu" class="screen menu-screen">
+    <div class="menu-background">
+      <div class="menu-glow glow-one"></div>
+      <div class="menu-glow glow-two"></div>
+      <div class="menu-pattern"></div>
     </div>
 
-    <!-- *** Settings screen -->
-    <div id="settings-screen" hidden style="
-        position: fixed;
-        inset: 0;
-        z-index: 10001;
-        background: #18232b;
-        color: white;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        font-family: Arial, sans-serif;
-    ">
+    <section class="menu-content">
+      <div class="brand-mark">H</div>
+      <p class="eyebrow">A RESTAURANT MANAGEMENT EXPERIENCE</p>
+      <h1>HIVE<span>MIND</span></h1>
+      <h2>Kitchen Harmony</h2>
+      <p class="menu-description">
+        Great kitchens aren't built by one person.
+        They're built by a team working in harmony.
+      </p>
 
-        <h2>SETTINGS</h2>
+      <div class="menu-actions">
+        <button id="playButton" class="primary-button">PLAY GAME <span>→</span></button>
+        <button id="resumeButton" class="secondary-button">RESUME RESTAURANT</button>
+        <button id="settingsButton" class="text-button">SETTINGS</button>
+      </div>
 
-        <p>Game settings will be expanded as development continues.</p>
+      <p class="menu-footer">A little coordination. A lot of harmony.</p>
+    </section>
 
-        <button id="close-settings" style="
-            padding: 13px 35px;
-            margin-top: 20px;
-            background: #75d6bd;
-            color: #18232b;
-            border: none;
-            border-radius: 7px;
-            cursor: pointer;
-        ">
-            BACK
-        </button>
+    <div class="menu-decoration decoration-left">✳</div>
+    <div class="menu-decoration decoration-right">✳</div>
+  </main>
 
+  <!-- SETTINGS -->
+  <section id="settingsScreen" class="screen settings-screen hidden">
+    <div class="settings-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">PREFERENCES</p>
+          <h2>Settings</h2>
+        </div>
+        <button class="icon-button" id="closeSettingsButton" aria-label="Close settings">×</button>
+      </div>
+
+      <label class="setting-row">
+        <span>
+          <strong>Music volume</strong>
+          <small>Background music volume</small>
+        </span>
+        <input id="musicVolume" type="range" min="0" max="100" value="45">
+      </label>
+
+      <label class="setting-row">
+        <span>
+          <strong>Sound effects</strong>
+          <small>Kitchen and interface sounds</small>
+        </span>
+        <input id="soundVolume" type="range" min="0" max="100" value="65">
+      </label>
+
+      <label class="setting-row">
+        <span>
+          <strong>Game speed</strong>
+          <small>How quickly the restaurant day progresses</small>
+        </span>
+        <select id="gameSpeed">
+          <option value="1">Normal</option>
+          <option value="1.5">Fast</option>
+          <option value="2">Very fast</option>
+        </select>
+      </label>
+
+      <button id="saveSettingsButton" class="primary-button full-button">SAVE SETTINGS</button>
     </div>
+  </section>
 
-    <!--
-        *** Preserve the original game interface in the DOM.
-        Existing JavaScript systems still use these elements.
-        The main menu is displayed before gameplay begins.
-    -->
+  <!-- GAME -->
+  <main id="gameScreen" class="screen game-screen hidden">
 
-    <div id="game" hidden>
+    <header class="game-header">
+      <div class="game-brand">
+        <div class="small-brand-mark">H</div>
+        <div>
+          <strong>HIVEMIND</strong>
+          <small>KITCHEN HARMONY</small>
+        </div>
+      </div>
 
-        <header class="topbar">
+      <div class="day-display">
+        <span class="status-dot"></span>
+        <div>
+          <strong id="dayLabel">DAY 1</strong>
+          <small id="restaurantStatus">KITCHEN OPEN</small>
+        </div>
+      </div>
 
-            <div class="brand">
-                <span>🍳</span>
+      <div class="header-stats">
+        <div class="header-stat">
+          <span>TIME</span>
+          <strong id="clockDisplay">08:00</strong>
+        </div>
+        <div class="header-stat">
+          <span>MONEY</span>
+          <strong id="moneyDisplay">R500</strong>
+        </div>
+        <div class="header-stat">
+          <span>QUALITY</span>
+          <strong id="qualityDisplay">85%</strong>
+        </div>
+        <button id="pauseButton" class="icon-button pause-button" aria-label="Pause game">Ⅱ</button>
+      </div>
+    </header>
 
-                <div>
-                    <h1>HIVEMIND</h1>
-                    <small>KITCHEN HARMONY</small>
-                </div>
+    <div class="game-layout">
+
+      <!-- LEFT: CUSTOMER ORDERS -->
+      <aside class="orders-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">FRONT OF HOUSE</p>
+            <h2>Order tickets</h2>
+          </div>
+          <span class="count-pill" id="orderCount">0</span>
+        </div>
+
+        <div class="customer-summary">
+          <div>
+            <strong id="customerCount">0</strong>
+            <small>Customers served</small>
+          </div>
+          <div>
+            <strong id="waitingCount">0</strong>
+            <small>Waiting</small>
+          </div>
+        </div>
+
+        <div id="ordersList" class="orders-list">
+          <div class="empty-state">Waiting for the first customer...</div>
+        </div>
+
+        <div class="order-note">
+          <span>✦</span>
+          <p>Keep an eye on customer patience. Happy customers keep the restaurant thriving.</p>
+        </div>
+      </aside>
+
+      <!-- CENTER: KITCHEN -->
+      <section class="kitchen-panel">
+        <div class="kitchen-heading">
+          <div>
+            <p class="eyebrow">YOUR RESTAURANT</p>
+            <h2>The Kitchen</h2>
+          </div>
+          <div class="harmony-indicator">
+            <span class="harmony-icon">✳</span>
+            <div>
+              <small>KITCHEN HARMONY</small>
+              <strong id="harmonyDisplay">75%</strong>
             </div>
+          </div>
+        </div>
 
-            <div class="resources">
-                <div>💰 Money: <span id="money">500</span></div>
-                <div>🥕 Ingredients: <span id="ingredients">100</span></div>
-                <div>⭐ Reputation: <span id="reputation">50</span></div>
+        <div class="kitchen-scene">
+
+          <div class="scene-top">
+            <div class="window-view">
+              <div class="sun"></div>
+              <div class="window-hill hill-one"></div>
+              <div class="window-hill hill-two"></div>
             </div>
+            <div class="scene-sign">HIVE MIND <span>✦</span></div>
+            <div class="scene-lamp">◉</div>
+          </div>
 
-        </header>
+          <div class="station-row">
+            <div class="kitchen-station">
+              <span class="station-icon">🔪</span>
+              <strong>PREPARATION</strong>
+              <small id="prepStationStatus">Ready</small>
+            </div>
+            <div class="kitchen-station">
+              <span class="station-icon">🍳</span>
+              <strong>COOKING</strong>
+              <small id="cookStationStatus">Ready</small>
+            </div>
+            <div class="kitchen-station">
+              <span class="station-icon">🍽️</span>
+              <strong>PLATING</strong>
+              <small id="plateStationStatus">Ready</small>
+            </div>
+            <div class="kitchen-station">
+              <span class="station-icon">🥤</span>
+              <strong>DRINKS</strong>
+              <small id="drinkStationStatus">Ready</small>
+            </div>
+          </div>
 
-        <main class="dashboard">
+          <div class="staff-scene">
+            <div class="scene-label">YOUR TEAM AT WORK</div>
+            <div id="staffScene" class="staff-scene-grid"></div>
+          </div>
 
-            <section class="welcome">
+          <div class="scene-floor">
+            <span>✦</span>
+            <span>✦</span>
+            <span>✦</span>
+          </div>
+        </div>
 
-                <div>
-                    <h2>Welcome, Head Chef!</h2>
-                    <p>Your restaurant is open. Your team is ready for instructions.</p>
-                </div>
+        <div class="kitchen-bottom">
+          <div class="resource-card">
+            <div class="resource-icon">🥬</div>
+            <div>
+              <small>INGREDIENTS</small>
+              <strong id="ingredientDisplay">80</strong>
+            </div>
+          </div>
+          <div class="resource-card">
+            <div class="resource-icon">🍴</div>
+            <div>
+              <small>UTENSILS</small>
+              <strong id="utensilDisplay">90%</strong>
+            </div>
+          </div>
+          <div class="resource-card">
+            <div class="resource-icon">⚡</div>
+            <div>
+              <small>EFFICIENCY</small>
+              <strong id="efficiencyDisplay">75%</strong>
+            </div>
+          </div>
+        </div>
+      </section>
 
-                <div class="day">
-                    DAY <span id="day">1</span>
-                </div>
+      <!-- RIGHT: STAFF MANAGEMENT -->
+      <aside class="staff-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">YOUR TEAM</p>
+            <h2>Staff members</h2>
+          </div>
+          <span class="count-pill" id="staffCount">6</span>
+        </div>
 
-            </section>
+        <p class="panel-instruction">Select a staff member to manage their tasks.</p>
+        <div id="staffList" class="staff-list"></div>
 
-            <nav class="navigation">
-                <button class="active" data-panel="dashboard">🏠 Dashboard</button>
-                <button data-panel="staff">👨‍🍳 Staff</button>
-                <button data-panel="kitchen">🔧 Kitchen</button>
-                <button data-panel="customers">💬 Customers</button>
-                <button data-panel="minigames">🎮 Mini-games</button>
-            </nav>
-
-            <section id="dashboard" class="panel active-panel">
-
-                <h2>Restaurant Overview</h2>
-
-                <div class="dashboard-grid">
-
-                    <article class="card">
-                        <h3>👨‍🍳 Your Team</h3>
-                        <p>6 staff members currently employed.</p>
-                        <button data-go="staff">Manage Staff</button>
-                    </article>
-
-                    <article class="card">
-                        <h3>🍳 Kitchen Status</h3>
-                        <p>Your kitchen is operational.</p>
-                        <button data-go="kitchen">Kitchen Management</button>
-                    </article>
-
-                    <article class="card">
-                        <h3>📦 Resources</h3>
-                        <p>Check your available ingredients.</p>
-                        <button id="collect-resources">Collect Resources</button>
-                    </article>
-
-                    <article class="card">
-                        <h3>📢 Restaurant News</h3>
-                        <p id="event-message">The kitchen is ready for its first customers.</p>
-                        <button id="new-event">New Event</button>
-                    </article>
-
-                </div>
-
-            </section>
-
-            <section id="staff" class="panel">
-
-                <h2>Staff Management</h2>
-                <div id="staff-list" class="dashboard-grid"></div>
-
-            </section>
-
-            <section id="kitchen" class="panel">
-
-                <h2>Kitchen Management</h2>
-                <div id="upgrade-list" class="dashboard-grid"></div>
-
-            </section>
-
-            <section id="customers" class="panel">
-
-                <h2>Customer Conversations</h2>
-                <div id="customer-content" class="card"></div>
-
-            </section>
-
-            <section id="minigames" class="panel">
-
-                <h2>Kitchen Mini-games</h2>
-                <div id="minigame-content" class="card"></div>
-
-            </section>
-
-        </main>
-
-        <footer>
-            HIVEMIND: Kitchen Harmony © 2026
-        </footer>
-
+        <div class="selected-staff-card">
+          <p class="eyebrow">SELECTED EMPLOYEE</p>
+          <div id="selectedStaffDetails">
+            <p>Select a team member.</p>
+          </div>
+          <button id="instructionButton" class="primary-button full-button" disabled>
+            GIVE INSTRUCTION
+          </button>
+        </div>
+      </aside>
     </div>
 
-    <!--
-        *** Preserve the existing script order.
-        Other systems may depend on earlier scripts.
-    -->
+    <!-- BOTTOM GAME INFORMATION -->
+    <footer class="game-footer">
+      <div class="footer-message">
+        <span class="live-dot"></span>
+        <span id="activityMessage">The kitchen is ready for the day.</span>
+      </div>
+      <div class="footer-actions">
+        <button id="recipeButton" class="footer-button">📖 Recipe book</button>
+        <button id="inventoryButton" class="footer-button">📦 Inventory</button>
+        <button id="upgradeButton" class="footer-button">✦ Upgrades</button>
+        <button id="menuButton" class="footer-button">☰ Menu</button>
+      </div>
+    </footer>
+  </main>
 
-    <script src="js/staff.js"></script>
-    <script src="js/kitchen.js"></script>
-    <script src="js/customers.js"></script>
-    <script src="js/minigames.js"></script>
-    <script src="js/game.js"></script>
-    <script src="js/simulation.js"></script>
-    <script src="js/kitchen-scene.js"></script>
+  <!-- INSTRUCTION MODAL -->
+  <section id="instructionModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <button class="modal-close" data-close="instructionModal">×</button>
+      <p class="eyebrow">STAFF MANAGEMENT</p>
+      <h2 id="instructionTitle">Give an instruction</h2>
+      <p id="instructionDescription">Select a task for your employee.</p>
+      <div id="instructionOptions" class="instruction-options"></div>
+      <form id="instructionForm">
+        <label for="instructionInput">Your instruction</label>
+        <input id="instructionInput" type="text" autocomplete="off" placeholder="Type your instruction...">
+        <button type="submit" class="primary-button full-button">SEND INSTRUCTION</button>
+      </form>
+      <p id="instructionFeedback" class="feedback-text"></p>
+    </div>
+  </section>
+
+  <!-- RECIPE BOOK -->
+  <section id="recipeModal" class="modal-overlay hidden">
+    <div class="modal-card wide-modal">
+      <button class="modal-close" data-close="recipeModal">×</button>
+      <p class="eyebrow">KITCHEN KNOWLEDGE</p>
+      <h2>Recipe book</h2>
+      <p>Recipes and their required kitchen instructions.</p>
+      <div id="recipeList" class="recipe-list"></div>
+    </div>
+  </section>
+
+  <!-- INVENTORY -->
+  <section id="inventoryModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <button class="modal-close" data-close="inventoryModal">×</button>
+      <p class="eyebrow">RESTAURANT MANAGEMENT</p>
+      <h2>Inventory</h2>
+      <div id="inventoryContent"></div>
+      <button id="buyIngredientsButton" class="primary-button full-button">BUY INGREDIENTS — R50</button>
+    </div>
+  </section>
+
+  <!-- UPGRADES -->
+  <section id="upgradeModal" class="modal-overlay hidden">
+    <div class="modal-card wide-modal">
+      <button class="modal-close" data-close="upgradeModal">×</button>
+      <p class="eyebrow">RESTAURANT DEVELOPMENT</p>
+      <h2>Kitchen upgrades</h2>
+      <div id="upgradeList" class="upgrade-list"></div>
+    </div>
+  </section>
+
+  <!-- PAUSE -->
+  <section id="pauseModal" class="modal-overlay hidden">
+    <div class="modal-card pause-card">
+      <p class="eyebrow">TAKE A BREATH</p>
+      <h2>Kitchen paused</h2>
+      <p>Your restaurant is waiting for you.</p>
+      <button id="continueButton" class="primary-button full-button">CONTINUE</button>
+      <button id="pauseSaveButton" class="secondary-button full-button">SAVE GAME</button>
+      <button id="pauseSettingsButton" class="secondary-button full-button">SETTINGS</button>
+      <button id="returnMenuButton" class="text-button full-button">MAIN MENU</button>
+    </div>
+  </section>
+
+  <!-- END OF DAY REPORT -->
+  <section id="reportModal" class="modal-overlay hidden">
+    <div class="modal-card report-card">
+      <p class="eyebrow">ANOTHER DAY IN THE HIVE</p>
+      <h2 id="reportTitle">Day 1 complete!</h2>
+      <p id="reportSubtitle">Your kitchen has closed for the day.</p>
+      <div id="reportContent"></div>
+      <button id="nextDayButton" class="primary-button full-button">OPEN NEXT DAY →</button>
+    </div>
+  </section>
+
+  <!-- NOTIFICATIONS -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
 </body>
 </html>
