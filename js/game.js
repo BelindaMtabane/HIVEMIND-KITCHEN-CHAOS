@@ -30,8 +30,6 @@
 
     /* =====================================================
        2. RECIPES
-       Difficulty controls instruction complexity.
-       It does NOT control the daily success target.
     ===================================================== */
 
     const RECIPES = [
@@ -368,7 +366,7 @@
     ];
 
     /* =====================================================
-       3. STAFF
+       3. STAFF AND DEPARTMENTS
     ===================================================== */
 
     const STAFF_TEMPLATE = [
@@ -397,43 +395,91 @@
         {
             id: "olivia",
             name: "Olivia",
-            role: "Head Chef",
-            shortRole: "Chef",
+            role: "Preparation Chef",
+            shortRole: "Preparation",
+            department: "preparation",
             color: "#e9b76b",
-            task: "Cooking",
-            x: 0.48,
-            y: 0.42
+            task: "Preparing ingredients",
+            x: 0.30,
+            y: 0.48
         },
         {
             id: "tina",
             name: "Tina",
-            role: "Preparation",
-            shortRole: "Prep",
+            role: "Cutting Chef",
+            shortRole: "Cutting",
+            department: "cutting",
             color: "#8ac5a2",
-            task: "Preparing ingredients",
-            x: 0.28,
-            y: 0.72
+            task: "Chopping ingredients",
+            x: 0.45,
+            y: 0.48
         },
         {
             id: "sam",
             name: "Sam",
-            role: "Kitchen Support",
-            shortRole: "Support",
+            role: "Cooking Chef",
+            shortRole: "Cooking",
+            department: "cooking",
             color: "#ad9bda",
-            task: "Kitchen support",
-            x: 0.63,
-            y: 0.73
+            task: "Cooking meals",
+            x: 0.60,
+            y: 0.48
         },
         {
             id: "kevin",
             name: "Kevin",
-            role: "Kitchen Support",
-            shortRole: "Support",
+            role: "Plating Chef",
+            shortRole: "Plating",
+            department: "plating",
             color: "#d4a36e",
-            task: "Kitchen support",
-            x: 0.83,
-            y: 0.70
+            task: "Plating meals",
+            x: 0.75,
+            y: 0.48
         }
+    ];
+
+    const DEPARTMENTS = [
+        {
+            id: "preparation",
+            name: "Preparation",
+            description: "Wash and prepare ingredients.",
+            duration: 3
+        },
+        {
+            id: "cutting",
+            name: "Cutting",
+            description: "Chop and portion ingredients.",
+            duration: 3
+        },
+        {
+            id: "cooking",
+            name: "Cooking",
+            description: "Cook the customer's recipe.",
+            duration: 0
+        },
+        {
+            id: "plating",
+            name: "Plating",
+            description: "Finish and plate the meal.",
+            duration: 3
+        }
+    ];
+
+    const STAFF_COLORS = [
+        "#e9b76b",
+        "#8ac5a2",
+        "#ad9bda",
+        "#d4a36e",
+        "#e9a0b1",
+        "#7eabd9",
+        "#d58b72",
+        "#8eb7c9"
+    ];
+
+    const CUSTOMER_NAMES = [
+        "Alex", "Jamie", "Taylor", "Jordan", "Morgan",
+        "Casey", "Riley", "Avery", "Cameron", "Drew",
+        "Sky", "Charlie", "Robin", "Sam", "Ellis"
     ];
 
     /* =====================================================
@@ -448,6 +494,7 @@
     let currentFrontHouseAction = null;
     let currentRecipeIndex = 0;
     let currentLibraryIndex = 0;
+    let currentDepartmentId = null;
 
     let gameInterval = null;
     let typingInterval = null;
@@ -493,11 +540,11 @@
     }
 
     function getStaff(id) {
-        return gameState.staff.find(member => member.id === id);
+        return gameState?.staff.find(member => member.id === id);
     }
 
     function getOrder(id) {
-        return gameState.orders.find(order => order.id === id);
+        return gameState?.orders.find(order => order.id === id);
     }
 
     function getRecipe(index) {
@@ -526,8 +573,17 @@
     }
 
     function updateStaffTask(staff, task) {
+        if (!staff) return;
         staff.task = task;
         updateSelectedStaff();
+    }
+
+    function safeBind(id, eventName, callback) {
+        const element = $(id);
+
+        if (element) {
+            element.addEventListener(eventName, callback);
+        }
     }
 
     /* =====================================================
@@ -545,7 +601,7 @@
             quality: 100,
             harmony: 100,
 
-            target: target,
+            target,
             totalCustomers: target + EXTRA_CUSTOMERS,
 
             successfulOrders: 0,
@@ -554,6 +610,7 @@
             customersCreated: 0,
 
             orders: [],
+
             staff: STAFF_TEMPLATE.map(member => ({
                 ...member,
                 busy: false,
@@ -561,6 +618,23 @@
                 currentOrder: null,
                 cooldown: 0
             })),
+
+            // *** Each starting chef has a department assignment.
+            departmentAssignments: {
+                preparation: ["olivia"],
+                cutting: ["tina"],
+                cooking: ["sam"],
+                plating: ["kevin"]
+            },
+
+            // *** Bella and Marcus are assigned separately.
+            frontHouseAssignments: {
+                receptionist: false,
+                waiter: false
+            },
+
+            // *** One new employee per department every seven completed days.
+            staffRecruitmentCount: 0,
 
             clockMinutes: DAY_START_MINUTES,
             settings: { ...DEFAULT_SETTINGS },
@@ -612,7 +686,9 @@
         gameState.staff.forEach(staff => {
             staff.busy = false;
             staff.currentOrder = null;
-            staff.task = "Waiting";
+            staff.task = staff.frontHouse
+                ? "Waiting"
+                : `Assigned: ${getDepartmentName(staff.department)}`;
             staff.cooldown = 0;
         });
 
@@ -624,13 +700,15 @@
         hide("pauseModal");
         show("gameScreen");
 
-        setText("targetExplanation",
-            `Complete ${gameState.target} successful orders. ${EXTRA_CUSTOMERS} extra customers will arrive.`);
+        setText(
+            "targetExplanation",
+            `Complete ${gameState.target} successful orders. ${EXTRA_CUSTOMERS} extra customers will arrive.`
+        );
 
         updateAllUI();
         drawKitchen();
 
-        /* First customer arrives immediately. */
+        // *** The first customer arrives immediately.
         createCustomer();
 
         startGameLoop();
@@ -638,17 +716,13 @@
         toast(`Day ${gameState.day} has started! Today's target: ${gameState.target}.`);
     }
 
+    function getDepartmentName(id) {
+        return DEPARTMENTS.find(department => department.id === id)?.name || "Unassigned";
+    }
+
     /* =====================================================
        8. CUSTOMER GENERATION
     ===================================================== */
-
-    const CUSTOMER_NAMES = [
-        "Alex", "Jamie", "Taylor", "Jordan", "Morgan",
-        "Casey", "Riley", "Avery", "Cameron", "Drew",
-        "Sky", "Charlie", "Robin", "Sam", "Ellis"
-    ];
-
-    const CUSTOMER_ICONS = ["🙂", "😎", "😊", "🤓", "😋", "🧐"];
 
     function createCustomer() {
         if (!gameState || paused) return;
@@ -662,9 +736,10 @@
 
         const order = {
             id: gameState.nextCustomerId++,
-            customer: CUSTOMER_NAMES[randomNumber(0, CUSTOMER_NAMES.length - 1)],
-            icon: CUSTOMER_ICONS[randomNumber(0, CUSTOMER_ICONS.length - 1)],
-            recipeIndex: recipeIndex,
+            customer: CUSTOMER_NAMES[
+                randomNumber(0, CUSTOMER_NAMES.length - 1)
+            ],
+            recipeIndex,
             recipe: recipe.name,
 
             status: "waiting",
@@ -677,23 +752,22 @@
             quality: 100,
             greetingComplete: false,
             cookingComplete: false,
-            served: false
+            served: false,
+
+            // *** Track the automatic four-department workflow.
+            pipelineStageIndex: 0,
+            pipelineStageRemaining: 0,
+            pipelineStaffId: null,
+            ingredientsPaid: false
         };
 
         gameState.orders.push(order);
         gameState.customersCreated++;
 
-        updateAllUI();
-
         toast(`${order.customer} has arrived! Order: ${order.recipe}`);
 
-        /* Bella is responsible for reception. */
-        const bella = getStaff("bella");
-
-        if (bella && !bella.busy) {
-            setText("bellaStatus", "CUSTOMER");
-        }
-
+        processReceptionQueue();
+        updateAllUI();
         drawKitchen();
     }
 
@@ -709,7 +783,14 @@
 
             updateGameTime();
             updateCustomerPatience();
-            updateCooking();
+
+            // *** Run the automatic kitchen departments.
+            updateKitchenPipeline();
+
+            // *** Process receptionist and waiter assignments.
+            processReceptionQueue();
+            processWaiterQueue();
+
             updateStaffCooldowns();
             updateCustomerArrivals();
 
@@ -724,10 +805,8 @@
     function updateGameTime() {
         const speed = Number(gameState.settings.gameSpeed) || 1;
 
-        /* One real second represents speed/60 game minutes.
-           A full 12-hour restaurant day takes 12 real hours
-           at normal speed. */
-
+        // One real second represents speed / 60 game minutes.
+        // A full 12-hour restaurant day takes 12 real hours at normal speed.
         gameState.clockMinutes += speed / 60;
 
         if (gameState.clockMinutes >= DAY_START_MINUTES + DAY_LENGTH_MINUTES) {
@@ -738,10 +817,12 @@
     function updateCustomerArrivals() {
         if (gameState.customersCreated >= gameState.totalCustomers) return;
 
-        gameState.customerArrivalAccumulator +=
-            Number(gameState.settings.gameSpeed) / 60;
+        // *** Real-time arrival intervals: 10 seconds for Days 1–2, then 5.
+        const arrivalInterval = gameState.day <= 2 ? 10 : 5;
 
-        if (gameState.customerArrivalAccumulator >= 60) {
+        gameState.customerArrivalAccumulator += 1;
+
+        if (gameState.customerArrivalAccumulator >= arrivalInterval) {
             gameState.customerArrivalAccumulator = 0;
             createCustomer();
         }
@@ -750,49 +831,27 @@
     function updateCustomerPatience() {
         gameState.orders.forEach(order => {
             if (
-                order.status === "waiting" ||
-                order.status === "greeted" ||
-                order.status === "cooking" ||
-                order.status === "ready"
+                order.status === "served" ||
+                order.status === "lost"
             ) {
-                const speed = Number(gameState.settings.gameSpeed) || 1;
-
-                let patienceLoss = 0.015 * speed;
-
-                if (order.status === "cooking") {
-                    patienceLoss *= 0.4;
-                }
-
-                order.patience = Math.max(0, order.patience - patienceLoss);
-
-                if (order.patience <= 0) {
-                    loseCustomer(order);
-                }
+                return;
             }
-        });
-    }
-
-    function updateCooking() {
-        gameState.orders.forEach(order => {
-            if (order.status !== "cooking") return;
 
             const speed = Number(gameState.settings.gameSpeed) || 1;
 
-            order.cookingRemaining -= speed;
+            let patienceLoss = 0.015 * speed;
 
-            if (order.cookingRemaining <= 0) {
-                order.status = "ready";
-                order.cookingComplete = true;
+            if (
+                order.status === "cooking" ||
+                order.status === "plating"
+            ) {
+                patienceLoss *= 0.4;
+            }
 
-                const staff = getStaff(order.assignedStaff);
+            order.patience = Math.max(0, order.patience - patienceLoss);
 
-                if (staff) {
-                    staff.busy = false;
-                    staff.currentOrder = null;
-                    staff.task = "Waiting";
-                }
-
-                toast(`${order.recipe} is ready! Marcus can serve it.`);
+            if (order.patience <= 0) {
+                loseCustomer(order);
             }
         });
     }
@@ -821,7 +880,7 @@
         updateSelectedStaff();
         drawKitchen();
 
-        toast(`${staff.name} selected. Now select an order.`);
+        toast(`${staff.name} selected.`);
     }
 
     function updateSelectedStaff() {
@@ -833,399 +892,424 @@
             setText("selectedStaffRole", "Click an NPC in the kitchen to begin.");
             setText("selectedStaffTask", "Waiting");
             setText("selectedAvatar", "?");
-            return;
+        } else {
+            setText("selectedStaffLabel", `${staff.name} selected`);
+            setText("selectedStaffName", staff.name);
+            setText("selectedStaffRole", staff.role);
+            setText("selectedStaffTask", staff.task);
+            setText("selectedAvatar", staff.name.charAt(0));
         }
 
-        setText("selectedStaffLabel", `${staff.name} selected`);
-        setText("selectedStaffName", staff.name);
-        setText("selectedStaffRole", staff.role);
-        setText("selectedStaffTask", staff.task);
-        setText("selectedAvatar", staff.name.charAt(0));
+        const bella = getStaff("bella");
+        const marcus = getStaff("marcus");
 
         setText(
             "bellaStatus",
-            getStaff("bella").busy ? "BUSY" : "READY"
+            gameState?.frontHouseAssignments?.receptionist
+                ? "ASSIGNED"
+                : "UNASSIGNED"
         );
 
         setText(
             "marcusStatus",
-            getStaff("marcus").busy ? "BUSY" : "READY"
+            gameState?.frontHouseAssignments?.waiter
+                ? "ASSIGNED"
+                : "UNASSIGNED"
         );
-    }
 
-    /* =====================================================
-       11. ORDER SELECTION AND ASSIGNMENT
-    ===================================================== */
-
-    function selectOrder(orderId) {
-        const order = getOrder(orderId);
-        if (!order) return;
-
-        selectedOrderId = orderId;
-
-        if (!selectedStaffId) {
-            toast("Select a staff member in the kitchen first.");
-            renderOrders();
-            return;
+        if (bella) {
+            bella.task = gameState?.frontHouseAssignments?.receptionist
+                ? "Registering customers"
+                : "Waiting for assignment";
         }
 
-        const staff = getStaff(selectedStaffId);
-
-        if (!staff) return;
-
-        if (staff.busy || staff.cooldown > 0) {
-            toast(`${staff.name} is currently unavailable.`);
-            return;
-        }
-
-        if (order.status === "lost" || order.status === "served") {
-            toast("This customer order is already complete.");
-            return;
-        }
-
-        assignStaffToOrder(staff, order);
-    }
-
-    function assignStaffToOrder(staff, order) {
-        if (staff.id === "bella") {
-            handleReceptionist(staff, order);
-            return;
-        }
-
-        if (staff.id === "marcus") {
-            handleWaiter(staff, order);
-            return;
-        }
-
-        if (order.status === "waiting") {
-            toast("Bella must welcome the customer first.");
-            return;
-        }
-
-        if (order.status === "greeted" || order.status === "preparing") {
-            startCookingInstruction(staff, order);
-            return;
-        }
-
-        if (order.status === "ready") {
-            toast("The meal is ready. Select Marcus to deliver it.");
-            return;
-        }
-
-        if (order.status === "cooking") {
-            toast("This meal is already being prepared.");
+        if (marcus) {
+            marcus.task = gameState?.frontHouseAssignments?.waiter
+                ? "Serving completed meals"
+                : "Waiting for assignment";
         }
     }
 
     /* =====================================================
-       12. RECEPTIONIST
+       11. DEPARTMENT STAFF ASSIGNMENTS
     ===================================================== */
 
-    function handleReceptionist(staff, order) {
-        if (order.status !== "waiting") {
-            toast("This customer has already been welcomed.");
+    function assignStaffToDepartment(staffId, departmentId) {
+        if (!gameState) return;
+
+        const staff = getStaff(staffId);
+        const department = DEPARTMENTS.find(item => item.id === departmentId);
+
+        if (!staff || !department || staff.frontHouse) return;
+
+        if (staff.busy) {
+            toast(`${staff.name} is currently working on an order.`);
             return;
         }
 
-        openFrontHouseInstruction(
-            staff,
-            order,
-            "Welcome the customer",
-            "Welcome the customer and confirm their table.",
-            "Welcome the customer and confirm their table."
-        );
-    }
+        // *** Remove this employee from their previous department.
+        Object.values(gameState.departmentAssignments).forEach(list => {
+            const index = list.indexOf(staff.id);
 
-    /* =====================================================
-       13. WAITER
-    ===================================================== */
-
-    function handleWaiter(staff, order) {
-        if (order.status !== "ready") {
-            toast("Marcus can only deliver completed meals.");
-            return;
-        }
-
-        openFrontHouseInstruction(
-            staff,
-            order,
-            "Deliver the meal",
-            "Take the completed meal to the customer.",
-            "Deliver the completed meal to the customer."
-        );
-    }
-
-    /* =====================================================
-       14. FRONT-OF-HOUSE INSTRUCTIONS
-    ===================================================== */
-
-    function openFrontHouseInstruction(staff, order, title, description, expected) {
-        currentFrontHouseAction = {
-            staff,
-            order,
-            expected,
-            remaining: 15
-        };
-
-        staff.busy = true;
-        staff.currentOrder = order.id;
-        staff.task = title;
-
-        setText("frontHouseTitle", title);
-        setText("frontHouseDescription", description);
-        setText("frontHousePerson", `${staff.name} — ${staff.role}`);
-        setText("frontHouseExpected", expected);
-        setText("frontHouseTimer", "15.0s");
-        setText("frontHouseProgress", "");
-
-        $("frontHouseInput").value = "";
-
-        show("frontHouseModal");
-
-        startFrontHouseTimer();
-        updateAllUI();
-    }
-
-    function startFrontHouseTimer() {
-        clearInterval(frontHouseInterval);
-
-        frontHouseInterval = setInterval(() => {
-            if (paused || !currentFrontHouseAction) return;
-
-            currentFrontHouseAction.remaining -= 0.1;
-
-            const remaining = Math.max(0, currentFrontHouseAction.remaining);
-
-            setText("frontHouseTimer", `${remaining.toFixed(1)}s`);
-
-            const percentage = (remaining / 15) * 100;
-
-            $("frontHouseProgress").style.width = `${percentage}%`;
-
-            if (remaining <= 0) {
-                finishFrontHouseInstruction(false);
+            if (index !== -1) {
+                list.splice(index, 1);
             }
-        }, 100);
-    }
+        });
 
-    function submitFrontHouseInstruction() {
-        if (!currentFrontHouseAction) return;
-
-        const typed = $("frontHouseInput").value.trim();
-        const expected = currentFrontHouseAction.expected;
-
-        if (!instructionsMatch(typed, expected)) {
-            toast("The instruction is not correct. Check the wording.");
-            return;
+        // *** Assign the employee to the selected department.
+        if (!gameState.departmentAssignments[departmentId]) {
+            gameState.departmentAssignments[departmentId] = [];
         }
 
-        finishFrontHouseInstruction(true);
-    }
+        gameState.departmentAssignments[departmentId].push(staff.id);
 
-    function finishFrontHouseInstruction(success) {
-        if (!currentFrontHouseAction) return;
+        staff.department = departmentId;
+        staff.task = `Assigned: ${department.name}`;
 
-        clearInterval(frontHouseInterval);
+        toast(`${staff.name} assigned to ${department.name}.`);
 
-        const action = currentFrontHouseAction;
-        const { staff, order } = action;
-
-        currentFrontHouseAction = null;
-
-        hide("frontHouseModal");
-
-        staff.busy = false;
-        staff.currentOrder = null;
-        staff.cooldown = 3;
-
-        if (success) {
-            if (staff.id === "bella") {
-                order.status = "greeted";
-                order.greetingComplete = true;
-                staff.task = "Welcoming customers";
-                toast(`${staff.name} welcomed ${order.customer}.`);
-            } else {
-                serveCustomer(order);
-                staff.task = "Serving customers";
-                toast(`${staff.name} delivered the meal successfully!`);
-            }
-        } else {
-            staff.task = "Waiting";
-            staff.cooldown = 5;
-            toast("Instruction timed out. The customer is still waiting.");
-        }
-
+        renderDepartmentAssignments();
         updateAllUI();
         drawKitchen();
+        saveGame(false);
     }
 
-    /* =====================================================
-       15. COOKING INSTRUCTIONS
-    ===================================================== */
+    function openDepartmentAssignment(departmentId) {
+        if (!gameState) return;
 
-    function startCookingInstruction(staff, order) {
-        const recipe = getRecipe(order.recipeIndex);
+        const department = DEPARTMENTS.find(item => item.id === departmentId);
+        if (!department) return;
 
-        currentInstructionOrder = {
-            staff,
-            order,
-            recipe,
-            remaining: instructionTime(recipe.difficulty)
-        };
+        currentDepartmentId = departmentId;
 
-        staff.busy = true;
-        staff.currentOrder = order.id;
-        staff.task = `Preparing ${recipe.name}`;
+        setText("departmentModalTitle", `${department.name} Department`);
+        setText("departmentModalDescription", department.description);
 
-        currentRecipeIndex = order.recipeIndex;
+        renderDepartmentAssignmentOptions();
 
-        setText("instructionTitle", `Prepare ${recipe.name}`);
+        show("departmentModal");
+    }
 
-        $("instructionInput").value = "";
+    function renderDepartmentAssignmentOptions() {
+        const container = $("departmentAssignmentContent");
 
-        renderRecipeInstruction();
-        setText("typingOrderName", order.recipe);
-        setText("typingStaffName", `${staff.name} — ${staff.role}`);
+        if (!container || !currentDepartmentId) return;
 
-        setText(
-            "typingFeedback",
-            "Type the complete recipe instruction before the timer expires."
+        const department = DEPARTMENTS.find(
+            item => item.id === currentDepartmentId
         );
 
-        show("instructionModal");
+        const assignedIds =
+            gameState.departmentAssignments[currentDepartmentId] || [];
 
-        startTypingTimer();
+        const availableStaff = gameState.staff.filter(staff =>
+            !staff.frontHouse && !staff.busy
+        );
 
+        container.innerHTML = `
+            <div class="department-assignment-list">
+                <h4>Currently assigned</h4>
+
+                ${
+                    assignedIds.length
+                        ? assignedIds.map(id => {
+                            const staff = getStaff(id);
+
+                            return staff
+                                ? `<div class="department-staff-row">
+                                    <strong>${escapeHTML(staff.name)}</strong>
+                                    <span>${escapeHTML(staff.role)}</span>
+                                    <button
+                                        type="button"
+                                        data-remove-department-staff="${escapeHTML(staff.id)}"
+                                    >REMOVE</button>
+                                </div>`
+                                : "";
+                        }).join("")
+                        : "<p>No employees assigned yet.</p>"
+                }
+
+                <h4>Available employees</h4>
+
+                ${
+                    availableStaff.length
+                        ? availableStaff
+                            .filter(staff => !assignedIds.includes(staff.id))
+                            .map(staff => `
+                                <div class="department-staff-row">
+                                    <strong>${escapeHTML(staff.name)}</strong>
+                                    <span>${escapeHTML(staff.role)}</span>
+                                    <button
+                                        type="button"
+                                        data-add-department-staff="${escapeHTML(staff.id)}"
+                                    >ASSIGN</button>
+                                </div>
+                            `).join("")
+                        : "<p>No available employees.</p>"
+                }
+            </div>
+        `;
+    }
+
+    function removeStaffFromDepartment(staffId, departmentId) {
+        const staff = getStaff(staffId);
+
+        if (!staff || staff.busy) return;
+
+        const list = gameState.departmentAssignments[departmentId] || [];
+        const index = list.indexOf(staffId);
+
+        if (index !== -1) {
+            list.splice(index, 1);
+        }
+
+        staff.department = null;
+        staff.task = "Unassigned";
+
+        renderDepartmentAssignmentOptions();
+        renderDepartmentAssignments();
         updateAllUI();
+        drawKitchen();
+
+        toast(`${staff.name} removed from ${getDepartmentName(departmentId)}.`);
+        saveGame(false);
     }
 
-    function instructionTime(difficulty) {
-        const times = {
-            1: 25,
-            2: 30,
-            3: 35,
-            4: 40,
-            5: 45
-        };
+    function renderDepartmentAssignments() {
+        if (!gameState) return;
 
-        return times[difficulty] || 30;
-    }
+        const totalStaff = gameState.staff.filter(staff => !staff.frontHouse).length;
 
-    function startTypingTimer() {
-        clearInterval(typingInterval);
+        setText("departmentStaffCount", `${totalStaff} kitchen employees`);
 
-        const total = currentInstructionOrder.remaining;
+        DEPARTMENTS.forEach(department => {
+            const ids = gameState.departmentAssignments[department.id] || [];
+            const names = ids
+                .map(id => getStaff(id)?.name)
+                .filter(Boolean);
 
-        typingInterval = setInterval(() => {
-            if (paused || !currentInstructionOrder) return;
-
-            currentInstructionOrder.remaining -= 0.1;
-
-            const remaining = Math.max(
-                0,
-                currentInstructionOrder.remaining
-            );
-
-            setText("typingTimer", `${remaining.toFixed(1)}s`);
-
-            const percentage = (remaining / total) * 100;
-
-            $("typingProgress").style.width = `${percentage}%`;
-
-            if (remaining <= 0) {
-                finishCookingInstruction(false);
-            }
-        }, 100);
-    }
-
-    function instructionsMatch(typed, expected) {
-        const clean = value => value
-            .toLowerCase()
-            .replace(/[.,!?;:'"]/g, "")
-            .replace(/\s+/g, " ")
-            .trim();
-
-        return clean(typed) === clean(expected);
-    }
-
-    function submitCookingInstruction() {
-        if (!currentInstructionOrder) return;
-
-        const typed = $("instructionInput").value.trim();
-
-        const expected = currentInstructionOrder.recipe.instruction;
-
-        if (!instructionsMatch(typed, expected)) {
             setText(
-                "typingFeedback",
-                "Not quite! Read the recipe again and check your wording."
+                `${department.id}StaffStatus`,
+                names.length ? names.join(", ") : "No staff assigned"
             );
-
-            return;
-        }
-
-        finishCookingInstruction(true);
+        });
     }
 
-    function finishCookingInstruction(success) {
-        if (!currentInstructionOrder) return;
+    /* =====================================================
+       12. RECEPTIONIST AND WAITER ASSIGNMENTS
+    ===================================================== */
 
-        clearInterval(typingInterval);
+    function assignReceptionist() {
+        if (!gameState) return;
 
-        const action = currentInstructionOrder;
-        const { staff, order, recipe } = action;
+        gameState.frontHouseAssignments.receptionist =
+            !gameState.frontHouseAssignments.receptionist;
 
-        currentInstructionOrder = null;
+        const assigned = gameState.frontHouseAssignments.receptionist;
+        const bella = getStaff("bella");
 
-        hide("instructionModal");
-
-        if (!success) {
-            staff.busy = false;
-            staff.currentOrder = null;
-            staff.cooldown = 5;
-            staff.task = "Waiting";
-
-            order.status = "greeted";
-
-            order.patience = Math.max(0, order.patience - 10);
-
-            toast("Cooking instruction failed. Try assigning the order again.");
-
-            updateAllUI();
-            return;
+        if (bella) {
+            bella.task = assigned ? "Registering customers" : "Waiting";
         }
-
-        if (gameState.ingredients < recipe.cost) {
-            staff.busy = false;
-            staff.currentOrder = null;
-            staff.task = "Waiting";
-
-            toast("Not enough ingredients. Check your inventory.");
-
-            updateAllUI();
-            return;
-        }
-
-        gameState.ingredients -= recipe.cost;
-        gameState.dailyExpenses += recipe.cost;
-
-        order.status = "cooking";
-        order.assignedStaff = staff.id;
-        order.cookingRemaining = recipe.time;
-
-        order.quality = calculateCookingQuality(recipe, staff);
-
-        staff.task = `Cooking ${recipe.name}`;
 
         setText(
-            "typingFeedback",
-            "Instruction accepted. Cooking has started!"
+            "assignReceptionButton",
+            assigned ? "UNASSIGN BELLA" : "ASSIGN BELLA"
         );
 
-        toast(`${staff.name} is now cooking ${recipe.name}.`);
+        toast(
+            assigned
+                ? "Bella is now handling customer registrations."
+                : "Bella has been unassigned."
+        );
 
+        processReceptionQueue();
         updateAllUI();
-        drawKitchen();
+        saveGame(false);
+    }
+
+    function assignWaiter() {
+        if (!gameState) return;
+
+        gameState.frontHouseAssignments.waiter =
+            !gameState.frontHouseAssignments.waiter;
+
+        const assigned = gameState.frontHouseAssignments.waiter;
+        const marcus = getStaff("marcus");
+
+        if (marcus) {
+            marcus.task = assigned ? "Serving completed meals" : "Waiting";
+        }
+
+        setText(
+            "assignWaiterButton",
+            assigned ? "UNASSIGN MARCUS" : "ASSIGN MARCUS"
+        );
+
+        toast(
+            assigned
+                ? "Marcus is now responsible for serving meals."
+                : "Marcus has been unassigned."
+        );
+
+        processWaiterQueue();
+        updateAllUI();
+        saveGame(false);
+    }
+
+    function processReceptionQueue() {
+        if (!gameState || paused) return;
+        if (!gameState.frontHouseAssignments.receptionist) return;
+
+        const bella = getStaff("bella");
+        if (!bella) return;
+
+        gameState.orders.forEach(order => {
+            if (order.status !== "waiting") return;
+
+            order.status = "preparing";
+            order.greetingComplete = true;
+            order.pipelineStageIndex = 0;
+            order.pipelineStageRemaining = 0;
+            order.pipelineStaffId = null;
+
+            toast(`Bella registered ${order.customer}'s order.`);
+        });
+
+        bella.task = "Registering customers";
+    }
+
+    function processWaiterQueue() {
+        if (!gameState || paused) return;
+        if (!gameState.frontHouseAssignments.waiter) return;
+
+        const marcus = getStaff("marcus");
+        if (!marcus) return;
+
+        const readyOrders = gameState.orders.filter(
+            order => order.status === "ready"
+        );
+
+        readyOrders.forEach(order => {
+            if (order.served || order.status !== "ready") return;
+
+            marcus.task = `Serving ${order.customer}`;
+            serveCustomer(order);
+        });
+
+        marcus.task = "Serving completed meals";
+    }
+
+    /* =====================================================
+       13. AUTOMATIC KITCHEN WORKFLOW
+    ===================================================== */
+
+    function getAvailableDepartmentStaff(departmentId) {
+        const assignedStaff =
+            gameState.departmentAssignments[departmentId] || [];
+
+        return assignedStaff
+            .map(id => getStaff(id))
+            .find(staff => staff && !staff.busy && staff.cooldown <= 0);
+    }
+
+    function updateKitchenPipeline() {
+        if (!gameState) return;
+
+        const speed = Number(gameState.settings.gameSpeed) || 1;
+
+        gameState.orders.forEach(order => {
+            if (
+                !["preparing", "cutting", "cooking", "plating"].includes(order.status)
+            ) {
+                return;
+            }
+
+            if (order.status === "lost" || order.status === "served") return;
+
+            const stageIndex = order.pipelineStageIndex || 0;
+
+            if (stageIndex >= DEPARTMENTS.length) {
+                order.status = "ready";
+                processWaiterQueue();
+                return;
+            }
+
+            const department = DEPARTMENTS[stageIndex];
+
+            let staff = order.pipelineStaffId
+                ? getStaff(order.pipelineStaffId)
+                : null;
+
+            if (!staff) {
+                staff = getAvailableDepartmentStaff(department.id);
+
+                // Wait for an employee to become available.
+                if (!staff) return;
+
+                // Check ingredients before starting the cooking department.
+                if (department.id === "cooking" && !order.ingredientsPaid) {
+                    const recipe = getRecipe(order.recipeIndex);
+
+                    if (gameState.ingredients < recipe.cost) {
+                        toast(`Not enough ingredients for ${recipe.name}.`);
+                        loseCustomer(order);
+                        return;
+                    }
+
+                    gameState.ingredients -= recipe.cost;
+                    gameState.dailyExpenses += recipe.cost;
+                    order.ingredientsPaid = true;
+                }
+
+                staff.busy = true;
+                staff.currentOrder = order.id;
+                staff.task = `${department.name}: ${order.recipe}`;
+
+                order.pipelineStaffId = staff.id;
+
+                if (department.id === "cooking") {
+                    const recipe = getRecipe(order.recipeIndex);
+
+                    order.pipelineStageRemaining =
+                        gameState.upgrades.fasterKitchen
+                            ? recipe.time * 0.85
+                            : recipe.time;
+                } else {
+                    order.pipelineStageRemaining = department.duration;
+                }
+            }
+
+            order.pipelineStageRemaining -= speed;
+
+            if (order.pipelineStageRemaining > 0) return;
+
+            // Release the employee when the department is finished.
+            staff.busy = false;
+            staff.currentOrder = null;
+            staff.cooldown = 0;
+            staff.task = `Assigned: ${department.name}`;
+
+            if (department.id === "cooking") {
+                const recipe = getRecipe(order.recipeIndex);
+                order.quality = calculateCookingQuality(recipe, staff);
+            }
+
+            order.pipelineStageIndex++;
+            order.pipelineStaffId = null;
+            order.pipelineStageRemaining = 0;
+
+            if (order.pipelineStageIndex >= DEPARTMENTS.length) {
+                order.status = "ready";
+                order.cookingComplete = true;
+
+                toast(`${order.recipe} is ready for Marcus!`);
+
+                processWaiterQueue();
+            } else {
+                order.status = DEPARTMENTS[order.pipelineStageIndex].id;
+            }
+        });
     }
 
     function calculateCookingQuality(recipe, staff) {
@@ -1238,15 +1322,19 @@
             quality -= 8;
         }
 
+        if (gameState.upgrades.betterEquipment) {
+            quality += 5;
+        }
+
         return Math.min(100, quality);
     }
 
     /* =====================================================
-       16. SERVING CUSTOMERS
+       14. SERVING CUSTOMERS
     ===================================================== */
 
     function serveCustomer(order) {
-        if (order.served || order.status === "lost") return;
+        if (!order || order.served || order.status === "lost") return;
 
         const recipe = getRecipe(order.recipeIndex);
 
@@ -1279,7 +1367,9 @@
             if (staff.currentOrder === order.id) {
                 staff.busy = false;
                 staff.currentOrder = null;
-                staff.task = "Waiting";
+                staff.task = staff.department
+                    ? `Assigned: ${getDepartmentName(staff.department)}`
+                    : "Waiting";
             }
         });
 
@@ -1291,11 +1381,12 @@
     }
 
     /* =====================================================
-       17. CUSTOMER LEAVING
+       15. CUSTOMER LEAVING
     ===================================================== */
 
     function loseCustomer(order) {
         if (
+            !order ||
             order.status === "served" ||
             order.status === "lost"
         ) return;
@@ -1323,36 +1414,77 @@
             if (staff.currentOrder === order.id) {
                 staff.busy = false;
                 staff.currentOrder = null;
-                staff.task = "Waiting";
+                staff.task = staff.department
+                    ? `Assigned: ${getDepartmentName(staff.department)}`
+                    : "Waiting";
             }
         });
 
-        if (
-            currentInstructionOrder &&
-            currentInstructionOrder.order.id === order.id
-        ) {
-            clearInterval(typingInterval);
-            currentInstructionOrder = null;
-            hide("instructionModal");
-        }
-
-        if (
-            currentFrontHouseAction &&
-            currentFrontHouseAction.order.id === order.id
-        ) {
-            clearInterval(frontHouseInterval);
-            currentFrontHouseAction = null;
-            hide("frontHouseModal");
-        }
+        order.pipelineStaffId = null;
 
         toast(`${order.customer} has left without being served.`);
 
         updateAllUI();
+        drawKitchen();
         checkDayCompletion();
     }
 
     /* =====================================================
-       18. DAILY COMPLETION
+       16. WEEKLY STAFF RECRUITMENT
+    ===================================================== */
+
+    function recruitWeeklyStaff() {
+        if (!gameState) return;
+
+        const completedWeeks = Math.floor(gameState.completedDays / 7);
+
+        if (completedWeeks <= gameState.staffRecruitmentCount) return;
+
+        const newEmployees = [];
+
+        DEPARTMENTS.forEach((department, index) => {
+            const number = gameState.staff.length + 1;
+
+            const name = `Staff ${number}`;
+
+            const newStaff = {
+                id: `staff_${Date.now()}_${number}_${index}`,
+                name,
+                role: `${department.name} Staff`,
+                shortRole: department.name,
+                department: department.id,
+                color: STAFF_COLORS[
+                    randomNumber(0, STAFF_COLORS.length - 1)
+                ],
+                task: `Assigned: ${department.name}`,
+                x: 0.25 + (index * 0.16),
+                y: 0.65,
+                busy: false,
+                currentOrder: null,
+                cooldown: 0,
+                frontHouse: false
+            };
+
+            gameState.staff.push(newStaff);
+
+            gameState.departmentAssignments[department.id].push(newStaff.id);
+
+            newEmployees.push(newStaff.name);
+        });
+
+        gameState.staffRecruitmentCount = completedWeeks;
+
+        renderDepartmentAssignments();
+
+        toast(
+            `Weekly recruitment! Four new kitchen employees joined your team.`
+        );
+
+        saveGame(false);
+    }
+
+    /* =====================================================
+       17. DAILY COMPLETION
     ===================================================== */
 
     function checkDayCompletion() {
@@ -1411,6 +1543,11 @@
 
         gameState.money = Math.max(0, gameState.money);
 
+        // *** Recruit one new employee in each department every seven days.
+        if (gameState.completedDays % 7 === 0) {
+            recruitWeeklyStaff();
+        }
+
         setText("reportTitle", `Day ${gameState.day} Performance`);
         setText("reportScore", `${successful} / ${target}`);
         setText("reportRating", rating);
@@ -1424,12 +1561,18 @@
 
         if (gameState.day >= MAX_DAYS) {
             gameState.gameCompleted = true;
-            setText("reportTitle", "30-Day Restaurant Journey Complete");
-            setText("reportMessage",
-                `You completed your 30-day restaurant journey with ${gameState.money} coins and ${gameState.reputation}% reputation.`);
 
-            nextButton.textContent = "RETURN TO MAIN MENU";
-        } else {
+            setText("reportTitle", "30-Day Restaurant Journey Complete");
+
+            setText(
+                "reportMessage",
+                `You completed your 30-day restaurant journey with R${gameState.money} and ${gameState.reputation}% reputation.`
+            );
+
+            if (nextButton) {
+                nextButton.textContent = "RETURN TO MAIN MENU";
+            }
+        } else if (nextButton) {
             nextButton.textContent = "CONTINUE TO NEXT DAY";
         }
 
@@ -1441,7 +1584,7 @@
     }
 
     /* =====================================================
-       19. NEXT DAY
+       18. NEXT DAY
     ===================================================== */
 
     function nextDay() {
@@ -1456,13 +1599,12 @@
 
         gameState.day++;
 
-        /* The next day's target is randomly generated
-           independently of the recipe difficulty. */
-
         gameState.staff.forEach(staff => {
             staff.busy = false;
             staff.currentOrder = null;
-            staff.task = "Waiting";
+            staff.task = staff.department
+                ? `Assigned: ${getDepartmentName(staff.department)}`
+                : "Waiting";
         });
 
         const recipe = getRecipe(gameState.day - 1);
@@ -1474,17 +1616,21 @@
     }
 
     /* =====================================================
-       20. RECIPE BOOK
+       19. RECIPE BOOK
     ===================================================== */
 
     function renderRecipeInstruction() {
         const recipe = getRecipe(currentRecipeIndex);
 
-        setText("recipePageDisplay",
-            `PAGE ${currentRecipeIndex + 1} / ${RECIPES.length}`);
+        setText(
+            "recipePageDisplay",
+            `PAGE ${currentRecipeIndex + 1} / ${RECIPES.length}`
+        );
 
-        setText("recipeDifficulty",
-            `${"★".repeat(recipe.difficulty)} ${recipe.difficulty === 1 ? "EASY" : recipe.difficulty <= 3 ? "MEDIUM" : "ADVANCED"} RECIPE`);
+        setText(
+            "recipeDifficulty",
+            `${"★".repeat(recipe.difficulty)} ${recipe.difficulty === 1 ? "EASY" : recipe.difficulty <= 3 ? "MEDIUM" : "ADVANCED"} RECIPE`
+        );
 
         setText("recipeName", recipe.name);
         setText("recipeDescription", recipe.description);
@@ -1515,7 +1661,10 @@
             `${currentLibraryIndex + 1} / ${RECIPES.length}`
         );
 
-        $("recipeLibraryContent").innerHTML = `
+        const container = $("recipeLibraryContent");
+        if (!container) return;
+
+        container.innerHTML = `
             <div class="recipe-page">
                 <p class="eyebrow">
                     ${"★".repeat(recipe.difficulty)}
@@ -1562,7 +1711,7 @@
     }
 
     /* =====================================================
-       21. INVENTORY
+       20. INVENTORY
     ===================================================== */
 
     function openInventory() {
@@ -1571,9 +1720,12 @@
     }
 
     function renderInventory() {
-        $("inventoryContent").innerHTML = `
+        const container = $("inventoryContent");
+        if (!container || !gameState) return;
+
+        container.innerHTML = `
             <div class="inventory-card">
-                <span>🌿</span>
+                <span>INGREDIENTS</span>
                 <div>
                     <strong>General Ingredients</strong>
                     <p>Available kitchen ingredients</p>
@@ -1582,7 +1734,7 @@
             </div>
 
             <div class="inventory-card">
-                <span>🪙</span>
+                <span>COINS</span>
                 <div>
                     <strong>Restaurant Coins</strong>
                     <p>Available spending money</p>
@@ -1591,7 +1743,7 @@
             </div>
 
             <div class="inventory-card">
-                <span>⭐</span>
+                <span>REPUTATION</span>
                 <div>
                     <strong>Reputation</strong>
                     <p>Customer satisfaction reputation</p>
@@ -1600,14 +1752,14 @@
             </div>
 
             <p class="management-note">
-                Ingredients are automatically consumed when a cooking instruction is accepted.
+                Ingredients are automatically consumed when a meal reaches the cooking department.
                 Successful orders earn restaurant coins.
             </p>
         `;
     }
 
     /* =====================================================
-       22. UPGRADES
+       21. UPGRADES
     ===================================================== */
 
     const UPGRADE_DATA = [
@@ -1637,7 +1789,10 @@
     }
 
     function renderUpgrades() {
-        $("upgradeContent").innerHTML = UPGRADE_DATA.map(upgrade => {
+        const container = $("upgradeContent");
+        if (!container || !gameState) return;
+
+        container.innerHTML = UPGRADE_DATA.map(upgrade => {
             const purchased = gameState.upgrades[upgrade.id];
 
             return `
@@ -1681,7 +1836,7 @@
     }
 
     /* =====================================================
-       23. SAVE AND LOAD
+       22. SAVE AND LOAD
     ===================================================== */
 
     function saveGame(showMessage = true) {
@@ -1734,52 +1889,111 @@
 
             gameState = data;
 
-            /* Recover the six original staff members. */
+            // *** Preserve all recruited employees, not just the original six.
+            gameState.staff = data.staff.map(staff => ({
+                ...staff,
+                busy: false,
+                currentOrder: null,
+                cooldown: 0
+            }));
 
-            gameState.staff = STAFF_TEMPLATE.map(template => {
-                const existing = data.staff.find(
-                    staff => staff.id === template.id
-                );
-
-                return {
-                    ...template,
-                    ...(existing || {}),
-                    busy: false,
-                    currentOrder: null
+            // *** Recover department assignments from older saves if needed.
+            if (!gameState.departmentAssignments) {
+                gameState.departmentAssignments = {
+                    preparation: ["olivia"],
+                    cutting: ["tina"],
+                    cooking: ["sam"],
+                    plating: ["kevin"]
                 };
-            });
+            }
 
-            /* Recover interrupted work safely. */
-
-            gameState.orders.forEach(order => {
-                if (order.status === "cooking") {
-                    order.status = "greeted";
-                    order.cookingRemaining = 0;
+            // *** Ensure all departments exist in the save.
+            DEPARTMENTS.forEach(department => {
+                if (!Array.isArray(gameState.departmentAssignments[department.id])) {
+                    gameState.departmentAssignments[department.id] = [];
                 }
             });
 
+            // *** Recover receptionist and waiter assignment states.
+            if (!gameState.frontHouseAssignments) {
+                gameState.frontHouseAssignments = {
+                    receptionist: false,
+                    waiter: false
+                };
+            }
+
+            if (typeof gameState.staffRecruitmentCount !== "number") {
+                gameState.staffRecruitmentCount = 0;
+            }
+
+            if (!gameState.upgrades) {
+                gameState.upgrades = {
+                    betterEquipment: false,
+                    fasterKitchen: false,
+                    betterTraining: false
+                };
+            }
+
+            if (!gameState.nextCustomerId) {
+                gameState.nextCustomerId =
+                    Math.max(0, ...gameState.orders.map(order => order.id)) + 1;
+            }
+
+            // *** Recover interrupted orders without losing customers.
+            gameState.orders.forEach(order => {
+                if (
+                    order.status === "preparing" ||
+                    order.status === "cutting" ||
+                    order.status === "cooking" ||
+                    order.status === "plating"
+                ) {
+                    order.pipelineStageIndex =
+                        Math.max(0, DEPARTMENTS.findIndex(
+                            department => department.id === order.status
+                        ));
+
+                    order.pipelineStageRemaining = 0;
+                    order.pipelineStaffId = null;
+                    order.ingredientsPaid = Boolean(order.ingredientsPaid);
+                }
+
+                if (order.status === "greeted") {
+                    order.status = "preparing";
+                    order.pipelineStageIndex = 0;
+                    order.pipelineStageRemaining = 0;
+                    order.pipelineStaffId = null;
+                }
+            });
+
+            // *** Restore employee department links.
             gameState.staff.forEach(staff => {
-                staff.busy = false;
-                staff.currentOrder = null;
-                staff.task = "Waiting";
+                if (staff.frontHouse) return;
+
+                const department = DEPARTMENTS.find(item =>
+                    (gameState.departmentAssignments[item.id] || []).includes(staff.id)
+                );
+
+                staff.department = department?.id || staff.department || null;
+                staff.task = staff.department
+                    ? `Assigned: ${getDepartmentName(staff.department)}`
+                    : "Unassigned";
             });
 
             selectedStaffId = null;
             selectedOrderId = null;
 
-            paused = true;
+            paused = false;
 
             hide("mainMenu");
             hide("reportModal");
             hide("pauseModal");
             show("gameScreen");
 
+            renderDepartmentAssignments();
             updateAllUI();
             drawKitchen();
 
             startGameLoop();
-
-            paused = false;
 
             toast("Restaurant progress restored.");
 
@@ -1793,7 +2007,7 @@
     }
 
     /* =====================================================
-       24. PAUSE AND MENU
+       23. PAUSE AND MENU
     ===================================================== */
 
     function pauseGame() {
@@ -1824,6 +2038,7 @@
         hide("reportModal");
         hide("instructionModal");
         hide("frontHouseModal");
+        hide("departmentModal");
 
         show("mainMenu");
 
@@ -1834,7 +2049,7 @@
     }
 
     /* =====================================================
-       25. SETTINGS
+       24. SETTINGS
     ===================================================== */
 
     function openSettings() {
@@ -1842,16 +2057,21 @@
             ? gameState.settings
             : DEFAULT_SETTINGS;
 
-        $("gameSpeedInput").value = settings.gameSpeed;
-        $("soundInput").checked = settings.sound;
+        if ($("gameSpeedInput")) {
+            $("gameSpeedInput").value = settings.gameSpeed;
+        }
+
+        if ($("soundInput")) {
+            $("soundInput").checked = settings.sound;
+        }
 
         show("settingsModal");
     }
 
     function saveSettings() {
         const settings = {
-            gameSpeed: Number($("gameSpeedInput").value),
-            sound: $("soundInput").checked
+            gameSpeed: Number($("gameSpeedInput")?.value || 1),
+            sound: $("soundInput")?.checked ?? true
         };
 
         if (gameState) {
@@ -1866,11 +2086,12 @@
     }
 
     /* =====================================================
-       26. ORDER DISPLAY
+       25. ORDER DISPLAY
     ===================================================== */
 
     function renderOrders() {
         const list = $("orderList");
+        if (!list || !gameState) return;
 
         const activeOrders = gameState.orders.filter(order =>
             order.status !== "served" &&
@@ -1892,9 +2113,10 @@
         list.innerHTML = activeOrders.map(order => {
             let statusLabel = "WAITING";
 
-            if (order.status === "greeted") statusLabel = "WELCOMED";
             if (order.status === "preparing") statusLabel = "PREPARING";
+            if (order.status === "cutting") statusLabel = "CUTTING";
             if (order.status === "cooking") statusLabel = "COOKING";
+            if (order.status === "plating") statusLabel = "PLATING";
             if (order.status === "ready") statusLabel = "READY TO SERVE";
 
             const patience = Math.max(0, order.patience);
@@ -1910,8 +2132,6 @@
                     type="button"
                 >
                     <div class="order-card-top">
-                        <span class="customer-face">${order.icon}</span>
-
                         <div class="order-customer">
                             <strong>${escapeHTML(order.customer)}</strong>
                             <small>Customer #${order.id}</small>
@@ -1921,7 +2141,7 @@
                     </div>
 
                     <div class="order-food">
-                        🍽 ${escapeHTML(order.recipe)}
+                        ${escapeHTML(order.recipe)}
                     </div>
 
                     <div class="patience-track">
@@ -1938,7 +2158,7 @@
     }
 
     /* =====================================================
-       27. HUD UPDATES
+       26. HUD UPDATES
     ===================================================== */
 
     function updateAllUI() {
@@ -1970,19 +2190,42 @@
             (gameState.successfulOrders / gameState.target) * 100
         );
 
-        $("targetProgress").style.width = `${progress}%`;
+        const progressElement = $("targetProgress");
+
+        if (progressElement) {
+            progressElement.style.width = `${progress}%`;
+        }
+
+        const arrivalInterval = gameState.day <= 2 ? 10 : 5;
+
+        setText(
+            "arrivalStatus",
+            `New customers every ${arrivalInterval} seconds`
+        );
 
         renderOrders();
         updateSelectedStaff();
+        renderDepartmentAssignments();
 
-        if ($("inventoryContent") &&
-            !$("inventoryModal").classList.contains("hidden")) {
+        if (
+            $("inventoryContent") &&
+            $("inventoryModal") &&
+            !$("inventoryModal").classList.contains("hidden")
+        ) {
             renderInventory();
+        }
+
+        if (
+            $("upgradeContent") &&
+            $("upgradeModal") &&
+            !$("upgradeModal").classList.contains("hidden")
+        ) {
+            renderUpgrades();
         }
     }
 
     /* =====================================================
-       28. TOP-DOWN KITCHEN CANVAS
+       27. TOP-DOWN KITCHEN CANVAS
     ===================================================== */
 
     const canvas = $("kitchenCanvas");
@@ -2011,14 +2254,12 @@
 
         ctx.clearRect(0, 0, width, height);
 
-        /* FLOOR */
-
-        ctx.fillStyle = "#d5d0c5";
+        // *** Dining floor.
+        ctx.fillStyle = "#e7d9c4";
         ctx.fillRect(0, 0, width, height);
 
-        /* Floor tiles */
-
-        ctx.strokeStyle = "rgba(80,75,65,0.12)";
+        // *** Floor tiles.
+        ctx.strokeStyle = "rgba(80,75,65,0.10)";
         ctx.lineWidth = 2;
 
         for (let x = 0; x < width; x += 100) {
@@ -2035,65 +2276,59 @@
             ctx.stroke();
         }
 
-        /* WALLS */
-
+        // *** Restaurant walls.
         ctx.fillStyle = "#34454a";
         ctx.fillRect(0, 0, width, 35);
         ctx.fillRect(0, 0, 35, height);
         ctx.fillRect(width - 35, 0, 35, height);
 
-        /* RECEPTION */
-
+        // *** Reception.
         drawStation(60, 100, 240, 115, "RECEPTION", "#927a67");
 
-        /* CUSTOMER AREA */
+        // *** Customer area.
+        drawStation(350, 90, 330, 160, "DINING AREA", "#a48c70");
 
-        drawStation(850, 90, 270, 160, "CUSTOMER AREA", "#a48c70");
-
-        /* PREPARATION STATION */
-
+        // *** Preparation.
         drawStation(100, 360, 270, 110, "PREPARATION", "#758d8b");
 
-        /* COOKING STATION */
+        // *** Cutting.
+        drawStation(410, 360, 250, 110, "CUTTING", "#80918a");
 
-        drawStation(420, 330, 300, 125, "COOKING STATION", "#60787b");
+        // *** Cooking.
+        drawStation(700, 360, 270, 110, "COOKING", "#60787b");
 
-        /* OVEN */
+        // *** Plating.
+        drawStation(1010, 360, 250, 110, "PLATING", "#927b92");
 
-        drawStation(790, 330, 250, 125, "OVEN / GRILL", "#6b727b");
+        // *** Storage and washing.
+        drawStation(100, 560, 230, 95, "STORAGE", "#927c64");
+        drawStation(950, 560, 230, 95, "CLEANING", "#6b8990");
 
-        /* STORAGE */
+        // *** Dining tables.
+        drawTable(390, 145);
+        drawTable(520, 145);
 
-        drawStation(80, 560, 230, 95, "STORAGE", "#927c64");
-
-        /* WASHING */
-
-        drawStation(880, 560, 230, 95, "CLEANING", "#6b8990");
-
-        /* PREP ITEMS */
-
-        drawFoodItem(140, 395, "🥬");
-        drawFoodItem(220, 395, "🔪");
-        drawFoodItem(300, 395, "🥕");
-
-        /* COOKING ITEMS */
-
-        drawFoodItem(480, 380, "🍳");
-        drawFoodItem(570, 380, "🍲");
-        drawFoodItem(660, 380, "🥘");
-
-        /* CUSTOMER TABLES */
-
-        drawTable(910, 150);
-        drawTable(1030, 150);
-
-        /* STAFF */
-
+        // *** Staff positions.
         lastCanvasStaffPositions = [];
 
-        gameState.staff.forEach(staff => {
-            const x = staff.x * width;
-            const y = staff.y * height;
+        gameState.staff.forEach((staff, index) => {
+            let x = staff.x * width;
+            let y = staff.y * height;
+
+            // *** Keep recruited employees inside the kitchen area.
+            if (staff.department && index >= STAFF_TEMPLATE.length) {
+                const departmentIndex = DEPARTMENTS.findIndex(
+                    department => department.id === staff.department
+                );
+
+                const assignedList =
+                    gameState.departmentAssignments[staff.department] || [];
+
+                const positionInDepartment = assignedList.indexOf(staff.id);
+
+                x = 180 + (departmentIndex * 290);
+                y = 500 + (Math.max(0, positionInDepartment) * 55);
+            }
 
             drawStaff(staff, x, y);
 
@@ -2105,10 +2340,9 @@
             });
         });
 
-        /* CURRENT CUSTOMER COUNT */
-
         ctx.fillStyle = "#24383b";
         ctx.font = "bold 22px Arial";
+
         ctx.fillText(
             `CUSTOMERS: ${gameState.served + gameState.lost}/${gameState.totalCustomers}`,
             420,
@@ -2132,13 +2366,6 @@
         ctx.strokeRect(x + 10, y + 40, width - 20, height - 50);
     }
 
-    function drawFoodItem(x, y, emoji) {
-        ctx.font = "36px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(emoji, x, y);
-        ctx.textAlign = "left";
-    }
-
     function drawTable(x, y) {
         roundedRect(ctx, x, y, 75, 65, 12, "#80644c");
 
@@ -2149,8 +2376,7 @@
     function drawStaff(staff, x, y) {
         const selected = selectedStaffId === staff.id;
 
-        /* Selection ring */
-
+        // Selection ring.
         if (selected) {
             ctx.beginPath();
             ctx.arc(x, y, 43, 0, Math.PI * 2);
@@ -2159,15 +2385,13 @@
             ctx.stroke();
         }
 
-        /* Staff shadow */
-
+        // Staff shadow.
         ctx.beginPath();
         ctx.ellipse(x, y + 23, 26, 10, 0, 0, Math.PI * 2);
         ctx.fillStyle = "rgba(0,0,0,0.2)";
         ctx.fill();
 
-        /* Body */
-
+        // Cartoon-style body.
         ctx.beginPath();
         ctx.arc(x, y, 28, 0, Math.PI * 2);
         ctx.fillStyle = staff.color;
@@ -2177,8 +2401,7 @@
         ctx.lineWidth = 4;
         ctx.stroke();
 
-        /* Face */
-
+        // Face.
         ctx.fillStyle = "#34312f";
         ctx.beginPath();
         ctx.arc(x - 8, y - 5, 3, 0, Math.PI * 2);
@@ -2191,19 +2414,16 @@
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        /* Name */
-
+        // Name.
         ctx.textAlign = "center";
         ctx.font = "bold 17px Arial";
         ctx.fillStyle = "#24383b";
-
         ctx.fillText(staff.name, x, y + 65);
 
         ctx.font = "13px Arial";
         ctx.fillText(staff.shortRole, x, y + 84);
 
-        /* Task indicator */
-
+        // Busy indicator.
         if (staff.busy) {
             ctx.fillStyle = "#d58a3d";
             ctx.beginPath();
@@ -2215,7 +2435,7 @@
     }
 
     /* =====================================================
-       29. CANVAS INTERACTION
+       28. CANVAS INTERACTION
     ===================================================== */
 
     function handleCanvasClick(event) {
@@ -2243,108 +2463,112 @@
     }
 
     /* =====================================================
-       30. EVENT LISTENERS
+       29. EVENT LISTENERS
     ===================================================== */
 
     function bindEvents() {
+        safeBind("newGameButton", "click", createNewGame);
 
-        $("newGameButton").addEventListener("click", () => {
-            createNewGame();
-        });
-
-        $("resumeButton").addEventListener("click", () => {
+        safeBind("resumeButton", "click", () => {
             if (!loadGame()) {
                 toast("Start a new restaurant first.");
             }
         });
 
-        $("menuSettingsButton").addEventListener("click", openSettings);
+        safeBind("menuSettingsButton", "click", openSettings);
+        safeBind("pauseButton", "click", pauseGame);
+        safeBind("resumeGameButton", "click", resumeGame);
 
-        $("pauseButton").addEventListener("click", pauseGame);
-
-        $("resumeGameButton").addEventListener("click", resumeGame);
-
-        $("mainMenuButton").addEventListener("click", () => {
+        safeBind("mainMenuButton", "click", () => {
             saveGame(false);
             returnToMenu();
         });
 
-        $("saveButton").addEventListener("click", () => {
-            saveGame(true);
-        });
+        safeBind("saveButton", "click", () => saveGame(true));
 
-        $("pauseInventoryButton").addEventListener("click", () => {
-            openInventory();
-        });
+        safeBind("pauseInventoryButton", "click", openInventory);
+        safeBind("inventoryButton", "click", openInventory);
+        safeBind("upgradeButton", "click", openUpgrades);
+        safeBind("pauseUpgradeButton", "click", openUpgrades);
 
-        $("inventoryButton").addEventListener("click", openInventory);
-
-        $("upgradeButton").addEventListener("click", openUpgrades);
-
-        $("pauseUpgradeButton").addEventListener("click", openUpgrades);
-
-        $("recipeButton").addEventListener("click", () => {
+        safeBind("recipeButton", "click", () => {
             currentLibraryIndex = Math.max(0, gameState.day - 1);
             renderRecipeLibrary();
             show("recipeBookModal");
         });
 
-        $("pauseRecipeButton").addEventListener("click", () => {
+        safeBind("pauseRecipeButton", "click", () => {
             currentLibraryIndex = Math.max(0, gameState.day - 1);
             renderRecipeLibrary();
             show("recipeBookModal");
         });
 
-        $("pauseSettingsButton").addEventListener("click", openSettings);
+        safeBind("pauseSettingsButton", "click", openSettings);
+        safeBind("saveSettingsButton", "click", saveSettings);
+        safeBind("nextDayButton", "click", nextDay);
 
-        $("saveSettingsButton").addEventListener("click", saveSettings);
-
-        $("nextDayButton").addEventListener("click", nextDay);
-
-        $("reportMenuButton").addEventListener("click", () => {
+        safeBind("reportMenuButton", "click", () => {
             saveGame(false);
             returnToMenu();
         });
 
-        $("submitInstructionButton").addEventListener(
-            "click",
-            submitCookingInstruction
-        );
+        // *** New front-of-house assignment buttons.
+        safeBind("assignReceptionButton", "click", assignReceptionist);
+        safeBind("assignWaiterButton", "click", assignWaiter);
 
-        $("submitFrontHouseButton").addEventListener(
-            "click",
-            submitFrontHouseInstruction
-        );
+        // *** Department assignment buttons.
+        document.querySelectorAll("[data-assign-department]").forEach(button => {
+            button.addEventListener("click", () => {
+                openDepartmentAssignment(button.dataset.assignDepartment);
+            });
+        });
 
-        $("skipFrontHouseButton").addEventListener("click", () => {
+        // *** Department assignment modal interactions.
+        safeBind("departmentAssignmentContent", "click", event => {
+            const addButton = event.target.closest("[data-add-department-staff]");
+            const removeButton = event.target.closest("[data-remove-department-staff]");
+
+            if (addButton) {
+                assignStaffToDepartment(
+                    addButton.dataset.addDepartmentStaff,
+                    currentDepartmentId
+                );
+
+                renderDepartmentAssignmentOptions();
+            }
+
+            if (removeButton) {
+                removeStaffFromDepartment(
+                    removeButton.dataset.removeDepartmentStaff,
+                    currentDepartmentId
+                );
+            }
+        });
+
+        // *** Keep legacy instruction buttons harmless if the old modal remains.
+        safeBind("submitInstructionButton", "click", submitCookingInstruction);
+        safeBind("submitFrontHouseButton", "click", submitFrontHouseInstruction);
+
+        safeBind("skipFrontHouseButton", "click", () => {
             finishFrontHouseInstruction(false);
         });
 
-        $("previousRecipeButton").addEventListener("click", () => {
-            changeRecipe(-1);
-        });
+        safeBind("previousRecipeButton", "click", () => changeRecipe(-1));
+        safeBind("nextRecipeButton", "click", () => changeRecipe(1));
 
-        $("nextRecipeButton").addEventListener("click", () => {
-            changeRecipe(1);
-        });
+        safeBind("libraryPreviousButton", "click", () => changeLibraryRecipe(-1));
+        safeBind("libraryNextButton", "click", () => changeLibraryRecipe(1));
 
-        $("libraryPreviousButton").addEventListener("click", () => {
-            changeLibraryRecipe(-1);
-        });
-
-        $("libraryNextButton").addEventListener("click", () => {
-            changeLibraryRecipe(1);
-        });
-
-        $("orderList").addEventListener("click", event => {
+        safeBind("orderList", "click", event => {
             const button = event.target.closest("[data-order]");
 
             if (!button) return;
 
-            selectOrder(Number(button.dataset.order));
+            selectedOrderId = Number(button.dataset.order);
+            renderOrders();
         });
 
-        $("upgradeContent").addEventListener("click", event => {
+        safeBind("upgradeContent", "click", event => {
             const button = event.target.closest("[data-upgrade]");
 
             if (!button) return;
@@ -2352,55 +2576,35 @@
             purchaseUpgrade(button.dataset.upgrade);
         });
 
-        canvas.addEventListener("click", handleCanvasClick);
+        if (canvas) {
+            canvas.addEventListener("click", handleCanvasClick);
+        }
 
-        /* Close modal buttons */
-
+        // Close modal buttons.
         document.querySelectorAll("[data-close]").forEach(button => {
             button.addEventListener("click", () => {
                 const modalId = button.dataset.close;
 
                 hide(modalId);
 
-                if (modalId === "instructionModal") {
-                    clearInterval(typingInterval);
-
-                    if (currentInstructionOrder) {
-                        const action = currentInstructionOrder;
-
-                        action.staff.busy = false;
-                        action.staff.currentOrder = null;
-                        action.staff.task = "Waiting";
-
-                        action.order.status = "greeted";
-
-                        currentInstructionOrder = null;
-                    }
+                if (modalId === "departmentModal") {
+                    currentDepartmentId = null;
                 }
 
-                if (modalId === "frontHouseModal") {
+                if (modalId === "instructionModal" && currentInstructionOrder) {
+                    clearInterval(typingInterval);
+                    currentInstructionOrder = null;
+                }
+
+                if (modalId === "frontHouseModal" && currentFrontHouseAction) {
                     finishFrontHouseInstruction(false);
                 }
             });
         });
-
-        /* Entering a new instruction with Ctrl+Enter submits. */
-
-        $("instructionInput").addEventListener("keydown", event => {
-            if (event.key === "Enter" && event.ctrlKey) {
-                submitCookingInstruction();
-            }
-        });
-
-        $("frontHouseInput").addEventListener("keydown", event => {
-            if (event.key === "Enter" && event.ctrlKey) {
-                submitFrontHouseInstruction();
-            }
-        });
     }
 
     /* =====================================================
-       31. INITIALISATION
+       30. INITIALISATION
     ===================================================== */
 
     function initialiseGame() {
@@ -2419,14 +2623,17 @@
         console.log("HIVEMIND game systems loaded.");
         console.log("Staff available:", STAFF_TEMPLATE.length);
         console.log("Recipes available:", RECIPES.length);
+        console.log("Departments available:", DEPARTMENTS.length);
         console.log("Maximum days:", MAX_DAYS);
 
         const saved = localStorage.getItem(SAVE_KEY);
 
         if (!saved) {
-            $("resumeButton").disabled = true;
-            $("resumeButton").style.opacity = "0.5";
-        } else {
+            if ($("resumeButton")) {
+                $("resumeButton").disabled = true;
+                $("resumeButton").style.opacity = "0.5";
+            }
+        } else if ($("resumeButton")) {
             $("resumeButton").disabled = false;
             $("resumeButton").style.opacity = "1";
         }
