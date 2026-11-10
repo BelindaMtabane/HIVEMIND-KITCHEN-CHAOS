@@ -1,8 +1,8 @@
 
-/* =====================================================
-   HIVEMIND: KITCHEN HARMONY
-   KITCHEN UPGRADE SYSTEM
-   ===================================================== */
+// =====================================================
+// HIVEMIND: KITCHEN HARMONY
+// KITCHEN UPGRADE SYSTEM
+// =====================================================
 
 "use strict";
 
@@ -11,7 +11,7 @@ const kitchenUpgrades = [
         id: "stove",
         name: "Super Stove",
         emoji: "🔥",
-        description: "Cooks food faster. Hopefully nothing catches fire.",
+        description: "Cooks food faster and improves kitchen cooking capacity.",
         costs: [
             { money: 100, ingredients: 10 },
             { money: 200, ingredients: 20 },
@@ -28,7 +28,7 @@ const kitchenUpgrades = [
         id: "fridge",
         name: "Mega Fridge",
         emoji: "🧊",
-        description: "Keeps ingredients fresh. Unlike Chef Oliver.",
+        description: "Increases the amount of ingredients your kitchen can store.",
         costs: [
             { money: 120, ingredients: 15 },
             { money: 220, ingredients: 25 },
@@ -45,7 +45,7 @@ const kitchenUpgrades = [
         id: "prep",
         name: "Prep Station",
         emoji: "🔪",
-        description: "A better workspace for your chaotic chefs.",
+        description: "Improves food preparation and staff efficiency.",
         costs: [
             { money: 90, ingredients: 10 },
             { money: 180, ingredients: 20 },
@@ -217,8 +217,8 @@ function renderKitchen() {
                     `
                     : `
                         <p class="upgrade-cost">
-                            💰 $${nextCost.money}
-                            | 🥕 ${nextCost.ingredients}
+                            💰 R${nextCost.money}
+                            | 🥕 ${nextCost.ingredients} ingredients
                         </p>
 
                         <button
@@ -363,4 +363,3 @@ if (document.readyState === "loading") {
 } else {
     initialiseKitchen();
 }
-
