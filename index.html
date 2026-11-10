@@ -4,16 +4,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- *** Browser information -->
+    <meta name="theme-color" content="#18232b">
+    <meta name="description" content="HIVEMIND: Kitchen Chaos - Manage your restaurant, staff and kitchen in this interactive cooking game.">
+
     <title>HIVEMIND: Kitchen Chaos</title>
+
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
+
+    <!--
+        *** Keep the original game interface in the DOM.
+        Its JavaScript systems still use these elements.
+        The full-screen kitchen scene is displayed separately.
+    -->
 
     <div id="game">
 
         <header class="topbar">
+
             <div class="brand">
                 <span>🍳</span>
+
                 <div>
                     <h1>HIVEMIND</h1>
                     <small>KITCHEN CHAOS</small>
@@ -25,16 +40,22 @@
                 <div>🥕 Ingredients: <span id="ingredients">100</span></div>
                 <div>⭐ Reputation: <span id="reputation">10</span></div>
             </div>
+
         </header>
 
         <main class="dashboard">
 
             <section class="welcome">
+
                 <div>
                     <h2>Welcome, Head Chef!</h2>
                     <p>Your restaurant is open. Your staff are... questionable.</p>
                 </div>
-                <div class="day">DAY <span id="day">1</span></div>
+
+                <div class="day">
+                    DAY <span id="day">1</span>
+                </div>
+
             </section>
 
             <nav class="navigation">
@@ -46,9 +67,11 @@
             </nav>
 
             <section id="dashboard" class="panel active-panel">
+
                 <h2>Restaurant Overview</h2>
 
                 <div class="dashboard-grid">
+
                     <article class="card">
                         <h3>👨‍🍳 Your Team</h3>
                         <p>6 staff members currently employed.</p>
@@ -72,27 +95,37 @@
                         <p id="event-message">Chef Bella is arguing with a potato.</p>
                         <button id="new-event">New Event</button>
                     </article>
+
                 </div>
+
             </section>
 
             <section id="staff" class="panel">
+
                 <h2>Staff Management</h2>
                 <div id="staff-list" class="dashboard-grid"></div>
+
             </section>
 
             <section id="kitchen" class="panel">
+
                 <h2>Kitchen Upgrades</h2>
                 <div id="upgrade-list" class="dashboard-grid"></div>
+
             </section>
 
             <section id="customers" class="panel">
+
                 <h2>Customer Conversations</h2>
                 <div id="customer-content" class="card"></div>
+
             </section>
 
             <section id="minigames" class="panel">
+
                 <h2>Kitchen Mini-games</h2>
                 <div id="minigame-content" class="card"></div>
+
             </section>
 
         </main>
@@ -102,6 +135,11 @@
         </footer>
 
     </div>
+
+    <!--
+        *** Preserve the existing script order.
+        Other systems may depend on earlier scripts.
+    -->
 
     <script src="js/staff.js"></script>
     <script src="js/kitchen.js"></script>
@@ -113,4 +151,3 @@
 
 </body>
 </html>
-
