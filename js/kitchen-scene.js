@@ -65,156 +65,211 @@
        CREATE THE GAME SCREEN
        --------------------------------------------------------- */
 
-    
-function createGameScreen() {
-    if (document.getElementById("kitchen-game-screen")) {
-        return;
+    function createGameScreen() {
+        if (document.getElementById("kitchen-game-screen")) {
+            return;
+        }
+
+        const style = document.createElement("style");
+        style.id = "kitchen-game-scene-style";
+
+        style.textContent = `
+            /* *** FULL-SCREEN GAME CONTAINER */
+            html,
+            body {
+                width: 100%;
+                height: 100%;
+                min-height: 100%;
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+            }
+
+            /* *** HIDE THE OLD DASHBOARD, KEEP ITS SCRIPTS RUNNING */
+            #game {
+                display: none !important;
+            }
+
+            #kitchen-game-screen {
+                position: fixed;
+                inset: 0;
+                z-index: 99999;
+                width: 100vw;
+                height: 100vh;
+                height: 100dvh;
+                max-width: none;
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+                background: #263b45;
+                border: none;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            /* *** CANVAS FILLS THE ENTIRE GAME SCREEN */
+            #kitchen-game-canvas {
+                position: absolute;
+                inset: 0;
+                display: block;
+                width: 100%;
+                height: 100%;
+                aspect-ratio: auto;
+                touch-action: none;
+                cursor: pointer;
+            }
+
+            /* *** HELP BAR SITS ABOVE THE CANVAS */
+            #kitchen-game-help {
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 2;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                flex-wrap: wrap;
+                min-height: 42px;
+                box-sizing: border-box;
+                padding: 9px 18px;
+                color: #fff2dc;
+                background: rgba(28, 48, 57, .96);
+                font-size: 13px;
+            }
+
+            #kitchen-game-help strong {
+                color: #ffd16b;
+            }
+
+            #kitchen-game-help button {
+                background: #ffd16b;
+                color: #293943;
+                border: 0;
+                border-radius: 9px;
+                padding: 9px 14px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+
+            #kitchen-game-help button:hover {
+                background: #ffe19a;
+            }
+
+            /* Keep the original simulation DOM available
+               for its JavaScript assignment functions. */
+            #shift-simulation {
+                display: none !important;
+            }
+
+            @media(max-width: 600px) {
+                #kitchen-game-help {
+                    font-size: 11px;
+                    padding: 7px 10px;
+                }
+
+                #kitchen-game-help button {
+                    padding: 7px 10px;
+                }
+            }
+        `;
+
+        document.head.appendChild(style);
+
+        const wrapper = document.createElement("div");
+        wrapper.id = "kitchen-game-screen";
+
+        wrapper.innerHTML = `
+            <canvas
+                id="kitchen-game-canvas"
+                aria-label="Interactive two-dimensional restaurant kitchen"
+            >
+                Your browser does not support the game canvas.
+            </canvas>
+
+            <div id="kitchen-game-help">
+                <span>
+                    <strong>HOW TO PLAY:</strong>
+                    Select a staff member, then click an order ticket.
+                </span>
+
+                <button id="game-new-order">
+                    + New Order
+                </button>
+            </div>
+        `;
+
+        /* *** THE GAME IS NOW ADDED DIRECTLY TO THE PAGE */
+        document.body.appendChild(wrapper);
+
+        scene.canvas = document.getElementById(
+            "kitchen-game-canvas"
+        );
+
+        scene.ctx = scene.canvas.getContext("2d");
+
+        /* *** SET THE CANVAS TO THE CURRENT SCREEN SIZE */
+        resizeGameCanvas();
+
+        /* *** UPDATE THE CANVAS WHEN THE BROWSER RESIZES */
+        window.addEventListener("resize", resizeGameCanvas);
+
+        document.getElementById("game-new-order")
+            .addEventListener("click", createNewOrder);
+
+        scene.canvas.addEventListener(
+            "pointerdown",
+            handlePointerDown
+        );
+
+        initialiseActors();
+
+        scene.ready = true;
+
+        console.log("Kitchen Harmony: 2D game scene created.");
+        console.log("Kitchen Harmony: Full-screen mode enabled.");
     }
 
-    const style = document.createElement("style");
-    style.id = "kitchen-game-scene-style";
+    /* ---------------------------------------------------------
+       *** RESPONSIVE CANVAS RESIZING
+       --------------------------------------------------------- */
 
-    style.textContent = `
-        html, body {
-            margin: 0 !important;
-            padding: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            overflow: hidden !important;
-        }
+    function resizeGameCanvas() {
+        if (!scene.canvas || !scene.ctx) return;
 
-        /* Hide the old website without deleting its systems. */
-        #game {
-            display: none !important;
-        }
+        const pixelRatio = Math.min(
+            window.devicePixelRatio || 1,
+            2
+        );
 
-        #shift-simulation {
-            display: none !important;
-        }
+        /* *** USE THE ACTUAL BROWSER VIEWPORT */
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
 
-        /* *** FULL-SCREEN GAME */
-        #kitchen-game-screen {
-            position: fixed;
-            inset: 0;
-            width: 100vw;
-            height: 100vh;
-            height: 100dvh;
-            max-width: none;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            background: #263b45;
-            border: 0;
-            border-radius: 0;
-            box-shadow: none;
-            z-index: 99999;
-            box-sizing: border-box;
-        }
+        scene.canvas.width = Math.round(screenWidth * pixelRatio);
+        scene.canvas.height = Math.round(screenHeight * pixelRatio);
 
-        #kitchen-game-canvas {
-            position: absolute;
-            inset: 0;
-            display: block;
-            width: 100%;
-            height: 100%;
-            aspect-ratio: auto;
-            touch-action: none;
-            cursor: pointer;
-        }
+        /* *** SCALE THE ORIGINAL 1280 x 720 GAME WORLD */
+        const scaleX = scene.canvas.width / GAME_WIDTH;
+        const scaleY = scene.canvas.height / GAME_HEIGHT;
 
-        /* *** GAME CONTROLS */
-        #kitchen-game-help {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
-            padding: 10px 18px;
-            color: #fff2dc;
-            background: rgba(28, 48, 57, 0.92);
-            font-size: 13px;
-            box-sizing: border-box;
-        }
+        scene.ctx.setTransform(
+            scaleX,
+            0,
+            0,
+            scaleY,
+            0,
+            0
+        );
 
-        #kitchen-game-help strong {
-            color: #ffd16b;
-        }
-
-        #kitchen-game-help button {
-            background: #ffd16b;
-            color: #293943;
-            border: 0;
-            border-radius: 9px;
-            padding: 9px 14px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        @media(max-width: 600px) {
-            #kitchen-game-help {
-                font-size: 11px;
-                padding: 7px;
-            }
-        }
-    `;
-
-    document.head.appendChild(style);
-
-    const wrapper = document.createElement("div");
-    wrapper.id = "kitchen-game-screen";
-
-    wrapper.innerHTML = `
-        <canvas
-            id="kitchen-game-canvas"
-            width="${GAME_WIDTH}"
-            height="${GAME_HEIGHT}"
-            aria-label="Interactive two-dimensional restaurant kitchen"
-        >
-            Your browser does not support the game canvas.
-        </canvas>
-
-        <div id="kitchen-game-help">
-            <span>
-                <strong>HOW TO PLAY:</strong>
-                Select a staff member, then click an order ticket.
-            </span>
-
-            <button id="game-new-order">
-                + New Order
-            </button>
-        </div>
-    `;
-
-    /* *** Always mount the game at the document root. */
-    document.body.insertBefore(
-        wrapper,
-        document.body.firstChild
-    );
-
-    scene.canvas = document.getElementById(
-        "kitchen-game-canvas"
-    );
-
-    scene.ctx = scene.canvas.getContext("2d");
-
-    document.getElementById("game-new-order")
-        .addEventListener("click", createNewOrder);
-
-    scene.canvas.addEventListener(
-        "pointerdown",
-        handlePointerDown
-    );
-
-    initialiseActors();
-
-    scene.ready = true;
-
-    console.log("Kitchen Harmony: Full-screen game created.");
-}
+        console.log(
+            "Kitchen canvas resized:",
+            screenWidth,
+            "x",
+            screenHeight
+        );
+    }
 
     /* ---------------------------------------------------------
        STAFF CHARACTERS
@@ -226,7 +281,6 @@ function createGameScreen() {
 
     function initialiseActors() {
         const members = getStaff();
-
         const total = Math.max(6, members.length);
 
         scene.actors = [];
@@ -787,6 +841,7 @@ function createGameScreen() {
     function handlePointerDown(event) {
         const rect = scene.canvas.getBoundingClientRect();
 
+        /* *** MAP SCREEN POINTER POSITION TO GAME COORDINATES */
         const scaleX = GAME_WIDTH / rect.width;
         const scaleY = GAME_HEIGHT / rect.height;
 
@@ -856,6 +911,10 @@ function createGameScreen() {
 
         if (!select) {
             scene.message = "Order assignment interface is unavailable.";
+            console.warn(
+                "No assignment selector found for order:",
+                order.id
+            );
             return;
         }
 
@@ -875,6 +934,7 @@ function createGameScreen() {
             scene.message = "A new customer order has arrived!";
         } else {
             scene.message = "The order system has not loaded yet.";
+            console.error("KitchenSimulation.createOrder is unavailable.");
         }
     }
 
@@ -940,10 +1000,19 @@ function createGameScreen() {
 
         createGameScreen();
 
+        /* *** PREVENT DUPLICATE ANIMATION LOOPS */
+        if (scene.animationFrame) {
+            window.cancelAnimationFrame(scene.animationFrame);
+        }
+
+        scene.lastFrame = 0;
+
         scene.animationFrame =
             window.requestAnimationFrame(animate);
 
         console.log("HIVEMIND 2D kitchen is running!");
+        console.log("Game viewport:", window.innerWidth, "x", window.innerHeight);
+        console.log("Canvas ready:", Boolean(scene.canvas));
     }
 
     window.KitchenScene = {
@@ -958,3 +1027,4 @@ function createGameScreen() {
     }
 
 })();
+
