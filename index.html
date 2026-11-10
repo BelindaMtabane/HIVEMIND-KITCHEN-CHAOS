@@ -2,367 +2,323 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#172b28">
-  <meta name="description" content="HIVEMIND: Kitchen Harmony — a restaurant management and staff instruction game.">
-  <title>HIVEMIND: Kitchen Harmony</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
-  <script src="js/game.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HIVEMIND: Kitchen Harmony</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <div id="app">
 
-  <!-- MAIN MENU -->
-  <main id="mainMenu" class="screen menu-screen">
-    <div class="menu-background">
-      <div class="menu-glow glow-one"></div>
-      <div class="menu-glow glow-two"></div>
-      <div class="menu-pattern"></div>
+        <!-- MAIN MENU -->
+        <section id="mainMenu" class="screen active">
+            <div class="menu-panel">
+                <div class="brand-mark">H</div>
+                <p class="eyebrow">A KITCHEN MANAGEMENT EXPERIENCE</p>
+                <h1>HIVEMIND</h1>
+                <h2>Kitchen Harmony</h2>
+                <p class="menu-description">
+                    Lead your team. Coordinate every department.
+                    Keep the kitchen in harmony.
+                </p>
+                <button id="playButton" class="primary-button">PLAY GAME</button>
+                <button id="resumeButton" class="secondary-button">RESUME GAME</button>
+                <button id="settingsButton" class="secondary-button">SETTINGS</button>
+                <p class="version-label">KITCHEN BUILD 1.0</p>
+            </div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section id="settingsScreen" class="screen">
+            <div class="modal-panel settings-panel">
+                <h2>Settings</h2>
+                <label>Music volume <span id="musicValue">50%</span></label>
+                <input id="musicVolume" type="range" min="0" max="100" value="50">
+
+                <label>Sound volume <span id="soundValue">70%</span></label>
+                <input id="soundVolume" type="range" min="0" max="100" value="70">
+
+                <label>Game speed</label>
+                <select id="gameSpeed">
+                    <option value="1">Normal</option>
+                    <option value="1.25">Fast</option>
+                    <option value="0.75">Relaxed</option>
+                </select>
+
+                <button id="saveSettingsButton" class="primary-button">SAVE SETTINGS</button>
+                <button id="closeSettingsButton" class="secondary-button">BACK</button>
+            </div>
+        </section>
+
+        <!-- GAME -->
+        <section id="gameScreen" class="screen">
+
+            <!-- TOP HUD -->
+            <header class="top-hud">
+                <div class="hud-brand">
+                    <span class="small-brand">H</span>
+                    <div>
+                        <strong>HIVEMIND</strong>
+                        <small id="dayLabel">DAY 1</small>
+                    </div>
+                </div>
+
+                <div class="hud-stat">
+                    <span>TIME</span>
+                    <strong id="clockDisplay">08:00</strong>
+                </div>
+
+                <div class="hud-stat">
+                    <span>MONEY</span>
+                    <strong id="moneyDisplay">R500</strong>
+                </div>
+
+                <div class="hud-stat">
+                    <span>QUALITY</span>
+                    <strong id="qualityDisplay">100%</strong>
+                </div>
+
+                <div class="hud-stat">
+                    <span>CUSTOMERS</span>
+                    <strong id="customerCount">0</strong>
+                </div>
+
+                <div class="hud-stat">
+                    <span>HARMONY</span>
+                    <strong id="harmonyDisplay">100%</strong>
+                </div>
+
+                <button id="pauseButton" class="pause-button">Ⅱ</button>
+            </header>
+
+            <div class="game-layout">
+
+                <!-- CUSTOMER ORDERS -->
+                <aside class="orders-panel">
+                    <div class="panel-heading">
+                        <div>
+                            <span class="eyebrow">CUSTOMER QUEUE</span>
+                            <h2>Incoming Orders</h2>
+                        </div>
+                        <span id="waitingCount" class="counter">0</span>
+                    </div>
+
+                    <div id="ordersList" class="orders-list"></div>
+
+                    <div class="order-legend">
+                        <span><i class="dot waiting"></i> Waiting</span>
+                        <span><i class="dot progress"></i> In progress</span>
+                        <span><i class="dot ready"></i> Ready</span>
+                    </div>
+                </aside>
+
+                <!-- KITCHEN -->
+                <main class="kitchen-area">
+                    <div class="kitchen-heading">
+                        <div>
+                            <span class="eyebrow">RESTAURANT FLOOR</span>
+                            <h2>Commercial Kitchen</h2>
+                        </div>
+                        <span id="restaurantStatus" class="status-open">● KITCHEN OPEN</span>
+                    </div>
+
+                    <div class="kitchen-stage">
+                        <canvas id="kitchenCanvas" width="1100" height="700">
+                            Your browser does not support the canvas element.
+                        </canvas>
+
+                        <div class="canvas-hint">
+                            SELECT A STAFF MEMBER TO GIVE INSTRUCTIONS
+                        </div>
+                    </div>
+
+                    <div class="kitchen-footer">
+                        <div class="footer-stat">
+                            <span>INGREDIENTS</span>
+                            <strong id="ingredientDisplay">100 units</strong>
+                        </div>
+                        <div class="footer-stat">
+                            <span>UTENSILS</span>
+                            <strong id="utensilDisplay">100%</strong>
+                        </div>
+                        <div class="footer-stat">
+                            <span>EFFICIENCY</span>
+                            <strong id="efficiencyDisplay">100%</strong>
+                        </div>
+                        <div class="footer-stat">
+                            <span>STAFF ON DUTY</span>
+                            <strong id="staffCount">6</strong>
+                        </div>
+                    </div>
+                </main>
+
+            </div>
+
+            <!-- STAFF STRIP -->
+            <section class="staff-section">
+                <div class="staff-section-heading">
+                    <div>
+                        <span class="eyebrow">YOUR TEAM</span>
+                        <h2>Kitchen Staff</h2>
+                    </div>
+                    <p id="activityMessage">Your kitchen team is ready.</p>
+                </div>
+
+                <div id="staffList" class="staff-list"></div>
+            </section>
+
+            <!-- BOTTOM CONTROLS -->
+            <footer class="bottom-toolbar">
+                <button id="recipeButton">📖 Recipe Book</button>
+                <button id="inventoryButton">📦 Inventory</button>
+                <button id="upgradeButton">⬆ Upgrades</button>
+                <button id="buyIngredientsButton">＋ Buy Ingredients</button>
+                <button id="menuButton">Main Menu</button>
+            </footer>
+        </section>
+
+        <!-- TUTORIAL -->
+        <section id="tutorialModal" class="overlay hidden">
+            <div class="modal-panel tutorial-panel">
+                <span class="eyebrow">WELCOME TO YOUR RESTAURANT</span>
+                <h2>Let's get the kitchen running.</h2>
+                <div class="tutorial-steps">
+                    <p><strong>01 — Orders:</strong> Customers automatically place orders. Check the queue on the left.</p>
+                    <p><strong>02 — Staff:</strong> Select a staff member to open their recipe and instruction interface.</p>
+                    <p><strong>03 — Instructions:</strong> Choose the correct order, read the recipe, and type the instruction accurately before the typing timer expires.</p>
+                    <p><strong>04 — Harmony:</strong> Preparation, cooking, support and service must work together.</p>
+                    <p><strong>05 — Quality:</strong> Correct and timely instructions improve food quality. Mistakes and delays can reduce it.</p>
+                </div>
+                <button id="tutorialStartButton" class="primary-button">OPEN THE KITCHEN</button>
+            </div>
+        </section>
+
+        <!-- STAFF / RECIPE INSTRUCTION -->
+        <section id="instructionModal" class="overlay hidden">
+            <div class="modal-panel instruction-panel">
+                <div class="modal-heading">
+                    <div>
+                        <span class="eyebrow">STAFF INSTRUCTION SYSTEM</span>
+                        <h2 id="instructionTitle">Staff Instructions</h2>
+                    </div>
+                    <button class="close-button" data-close="instructionModal">×</button>
+                </div>
+
+                <p id="instructionDescription" class="muted-text"></p>
+
+                <div class="instruction-columns">
+                    <div class="recipe-reference">
+                        <span class="eyebrow">RECIPE BOOK</span>
+                        <h3 id="recipeReferenceTitle">Select a recipe</h3>
+                        <div id="recipeList" class="recipe-list"></div>
+                    </div>
+
+                    <div class="typing-area">
+                        <div class="typing-topline">
+                            <span>TYPE THE INSTRUCTION</span>
+                            <strong id="typingTimer">15s</strong>
+                        </div>
+
+                        <div class="timer-track">
+                            <div id="typingTimerBar" class="timer-fill"></div>
+                        </div>
+
+                        <p id="instructionPrompt" class="instruction-prompt">
+                            Select a recipe to see its instruction.
+                        </p>
+
+                        <form id="instructionForm">
+                            <textarea
+                                id="instructionInput"
+                                rows="4"
+                                placeholder="Type the instruction exactly as shown in the recipe book..."
+                                autocomplete="off"
+                                spellcheck="false"
+                            ></textarea>
+                            <button id="instructionSubmitButton" class="primary-button" type="submit">
+                                SEND INSTRUCTION
+                            </button>
+                        </form>
+
+                        <p id="instructionFeedback" class="feedback-message"></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RECIPE BOOK -->
+        <section id="recipeModal" class="overlay hidden">
+            <div class="modal-panel wide-panel">
+                <div class="modal-heading">
+                    <div>
+                        <span class="eyebrow">KITCHEN KNOWLEDGE</span>
+                        <h2>Recipe Book</h2>
+                    </div>
+                    <button class="close-button" data-close="recipeModal">×</button>
+                </div>
+                <div id="recipeBookContent" class="recipe-book-content"></div>
+            </div>
+        </section>
+
+        <!-- INVENTORY -->
+        <section id="inventoryModal" class="overlay hidden">
+            <div class="modal-panel wide-panel">
+                <div class="modal-heading">
+                    <div>
+                        <span class="eyebrow">RESTAURANT MANAGEMENT</span>
+                        <h2>Inventory</h2>
+                    </div>
+                    <button class="close-button" data-close="inventoryModal">×</button>
+                </div>
+                <div id="inventoryContent" class="inventory-grid"></div>
+                <button id="inventoryBuyButton" class="primary-button">BUY INGREDIENTS — R100</button>
+            </div>
+        </section>
+
+        <!-- UPGRADES -->
+        <section id="upgradeModal" class="overlay hidden">
+            <div class="modal-panel wide-panel">
+                <div class="modal-heading">
+                    <div>
+                        <span class="eyebrow">RESTAURANT DEVELOPMENT</span>
+                        <h2>Kitchen Upgrades</h2>
+                    </div>
+                    <button class="close-button" data-close="upgradeModal">×</button>
+                </div>
+                <div id="upgradeList" class="upgrade-grid"></div>
+            </div>
+        </section>
+
+        <!-- PAUSE -->
+        <section id="pauseModal" class="overlay hidden">
+            <div class="modal-panel pause-panel">
+                <span class="eyebrow">KITCHEN PAUSED</span>
+                <h2>Take a moment.</h2>
+                <button id="continueButton" class="primary-button">RESUME KITCHEN</button>
+                <button id="pauseInventoryButton" class="secondary-button">INVENTORY</button>
+                <button id="pauseUpgradeButton" class="secondary-button">UPGRADES</button>
+                <button id="pauseRecipeButton" class="secondary-button">RECIPE BOOK</button>
+                <button id="pauseSaveButton" class="secondary-button">SAVE GAME</button>
+                <button id="pauseSettingsButton" class="secondary-button">SETTINGS</button>
+                <button id="returnMenuButton" class="danger-button">RETURN TO MAIN MENU</button>
+            </div>
+        </section>
+
+        <!-- END OF DAY -->
+        <section id="reportModal" class="overlay hidden">
+            <div class="modal-panel wide-panel">
+                <span class="eyebrow">DAILY PERFORMANCE</span>
+                <h2 id="reportTitle">Day Complete</h2>
+                <p id="reportSubtitle" class="muted-text"></p>
+                <div id="reportContent" class="report-grid"></div>
+                <button id="nextDayButton" class="primary-button">START NEXT DAY</button>
+                <button id="reportMenuButton" class="secondary-button">MAIN MENU</button>
+            </div>
+        </section>
+
+        <div id="toastContainer" class="toast-container"></div>
     </div>
 
-    <section class="menu-content">
-      <div class="brand-mark">H</div>
-      <p class="eyebrow">A RESTAURANT MANAGEMENT EXPERIENCE</p>
-      <h1>HIVE<span>MIND</span></h1>
-      <h2>Kitchen Harmony</h2>
-      <p class="menu-description">
-        Great kitchens aren't built by one person.
-        They're built by a team working in harmony.
-      </p>
-
-      <div class="menu-actions">
-        <button id="playButton" class="primary-button">PLAY GAME <span>→</span></button>
-        <button id="resumeButton" class="secondary-button">RESUME RESTAURANT</button>
-        <button id="settingsButton" class="text-button">SETTINGS</button>
-      </div>
-
-      <p class="menu-footer">A little coordination. A lot of harmony.</p>
-    </section>
-
-    <div class="menu-decoration decoration-left">✳</div>
-    <div class="menu-decoration decoration-right">✳</div>
-  </main>
-
-  <!-- SETTINGS -->
-  <section id="settingsScreen" class="screen settings-screen hidden">
-    <div class="settings-panel">
-      <div class="panel-heading">
-        <div>
-          <p class="eyebrow">PREFERENCES</p>
-          <h2>Settings</h2>
-        </div>
-        <button class="icon-button" id="closeSettingsButton" aria-label="Close settings">×</button>
-      </div>
-
-      <label class="setting-row">
-        <span>
-          <strong>Music volume</strong>
-          <small>Background music volume</small>
-        </span>
-        <input id="musicVolume" type="range" min="0" max="100" value="45">
-      </label>
-
-      <label class="setting-row">
-        <span>
-          <strong>Sound effects</strong>
-          <small>Kitchen and interface sounds</small>
-        </span>
-        <input id="soundVolume" type="range" min="0" max="100" value="65">
-      </label>
-
-      <label class="setting-row">
-        <span>
-          <strong>Game speed</strong>
-          <small>How quickly the restaurant day progresses</small>
-        </span>
-        <select id="gameSpeed">
-          <option value="1">Normal</option>
-          <option value="1.5">Fast</option>
-          <option value="2">Very fast</option>
-        </select>
-      </label>
-
-      <button id="saveSettingsButton" class="primary-button full-button">SAVE SETTINGS</button>
-    </div>
-  </section>
-
-  <!-- GAME -->
-  <main id="gameScreen" class="screen game-screen hidden">
-
-    <header class="game-header">
-      <div class="game-brand">
-        <div class="small-brand-mark">H</div>
-        <div>
-          <strong>HIVEMIND</strong>
-          <small>KITCHEN HARMONY</small>
-        </div>
-      </div>
-
-      <div class="day-display">
-        <span class="status-dot"></span>
-        <div>
-          <strong id="dayLabel">DAY 1</strong>
-          <small id="restaurantStatus">KITCHEN OPEN</small>
-        </div>
-      </div>
-
-      <div class="header-stats">
-        <div class="header-stat">
-          <span>TIME</span>
-          <strong id="clockDisplay">08:00</strong>
-        </div>
-        <div class="header-stat">
-          <span>MONEY</span>
-          <strong id="moneyDisplay">R500</strong>
-        </div>
-        <div class="header-stat">
-          <span>QUALITY</span>
-          <strong id="qualityDisplay">85%</strong>
-        </div>
-        <button id="pauseButton" class="icon-button pause-button" aria-label="Pause game">Ⅱ</button>
-      </div>
-    </header>
-
-    <div class="game-layout">
-
-      <!-- LEFT: CUSTOMER ORDERS -->
-      <aside class="orders-panel">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">FRONT OF HOUSE</p>
-            <h2>Order tickets</h2>
-          </div>
-          <span class="count-pill" id="orderCount">0</span>
-        </div>
-
-        <div class="customer-summary">
-          <div>
-            <strong id="customerCount">0</strong>
-            <small>Customers served</small>
-          </div>
-          <div>
-            <strong id="waitingCount">0</strong>
-            <small>Waiting</small>
-          </div>
-        </div>
-
-        <div id="ordersList" class="orders-list">
-          <div class="empty-state">Waiting for the first customer...</div>
-        </div>
-
-        <div class="order-note">
-          <span>✦</span>
-          <p>Keep an eye on customer patience. Happy customers keep the restaurant thriving.</p>
-        </div>
-      </aside>
-
-      <!-- CENTER: KITCHEN -->
-      <section class="kitchen-panel">
-        <div class="kitchen-heading">
-          <div>
-            <p class="eyebrow">YOUR RESTAURANT</p>
-            <h2>The Kitchen</h2>
-          </div>
-          <div class="harmony-indicator">
-            <span class="harmony-icon">✳</span>
-            <div>
-              <small>KITCHEN HARMONY</small>
-              <strong id="harmonyDisplay">75%</strong>
-            </div>
-          </div>
-        </div>
-
-        <div class="kitchen-scene">
-
-          <div class="scene-top">
-            <div class="window-view">
-              <div class="sun"></div>
-              <div class="window-hill hill-one"></div>
-              <div class="window-hill hill-two"></div>
-            </div>
-            <div class="scene-sign">HIVE MIND <span>✦</span></div>
-            <div class="scene-lamp">◉</div>
-          </div>
-
-          <div class="station-row">
-            <div class="kitchen-station">
-              <span class="station-icon">🔪</span>
-              <strong>PREPARATION</strong>
-              <small id="prepStationStatus">Ready</small>
-            </div>
-            <div class="kitchen-station">
-              <span class="station-icon">🍳</span>
-              <strong>COOKING</strong>
-              <small id="cookStationStatus">Ready</small>
-            </div>
-            <div class="kitchen-station">
-              <span class="station-icon">🍽️</span>
-              <strong>PLATING</strong>
-              <small id="plateStationStatus">Ready</small>
-            </div>
-            <div class="kitchen-station">
-              <span class="station-icon">🥤</span>
-              <strong>DRINKS</strong>
-              <small id="drinkStationStatus">Ready</small>
-            </div>
-          </div>
-
-          <div class="staff-scene">
-            <div class="scene-label">YOUR TEAM AT WORK</div>
-            <div id="staffScene" class="staff-scene-grid"></div>
-          </div>
-
-          <div class="scene-floor">
-            <span>✦</span>
-            <span>✦</span>
-            <span>✦</span>
-          </div>
-        </div>
-
-        <div class="kitchen-bottom">
-          <div class="resource-card">
-            <div class="resource-icon">🥬</div>
-            <div>
-              <small>INGREDIENTS</small>
-              <strong id="ingredientDisplay">80</strong>
-            </div>
-          </div>
-          <div class="resource-card">
-            <div class="resource-icon">🍴</div>
-            <div>
-              <small>UTENSILS</small>
-              <strong id="utensilDisplay">90%</strong>
-            </div>
-          </div>
-          <div class="resource-card">
-            <div class="resource-icon">⚡</div>
-            <div>
-              <small>EFFICIENCY</small>
-              <strong id="efficiencyDisplay">75%</strong>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- RIGHT: STAFF MANAGEMENT -->
-      <aside class="staff-panel">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">YOUR TEAM</p>
-            <h2>Staff members</h2>
-          </div>
-          <span class="count-pill" id="staffCount">6</span>
-        </div>
-
-        <p class="panel-instruction">Select a staff member to manage their tasks.</p>
-        <div id="staffList" class="staff-list"></div>
-
-        <div class="selected-staff-card">
-          <p class="eyebrow">SELECTED EMPLOYEE</p>
-          <div id="selectedStaffDetails">
-            <p>Select a team member.</p>
-          </div>
-          <button id="instructionButton" class="primary-button full-button" disabled>
-            GIVE INSTRUCTION
-          </button>
-        </div>
-      </aside>
-    </div>
-
-    <!-- BOTTOM GAME INFORMATION -->
-    <footer class="game-footer">
-      <div class="footer-message">
-        <span class="live-dot"></span>
-        <span id="activityMessage">The kitchen is ready for the day.</span>
-      </div>
-      <div class="footer-actions">
-        <button id="recipeButton" class="footer-button">📖 Recipe book</button>
-        <button id="inventoryButton" class="footer-button">📦 Inventory</button>
-        <button id="upgradeButton" class="footer-button">✦ Upgrades</button>
-        <button id="menuButton" class="footer-button">☰ Menu</button>
-      </div>
-    </footer>
-  </main>
-
-  <!-- INSTRUCTION MODAL -->
-  <section id="instructionModal" class="modal-overlay hidden">
-    <div class="modal-card">
-      <button class="modal-close" data-close="instructionModal">×</button>
-      <p class="eyebrow">STAFF MANAGEMENT</p>
-      <h2 id="instructionTitle">Give an instruction</h2>
-      <p id="instructionDescription">Select a task for your employee.</p>
-      <div id="instructionOptions" class="instruction-options"></div>
-      <form id="instructionForm">
-        <label for="instructionInput">Your instruction</label>
-        <input id="instructionInput" type="text" autocomplete="off" placeholder="Type your instruction...">
-        <button type="submit" class="primary-button full-button">SEND INSTRUCTION</button>
-      </form>
-      <p id="instructionFeedback" class="feedback-text"></p>
-    </div>
-  </section>
-
-  <!-- RECIPE BOOK -->
-  <section id="recipeModal" class="modal-overlay hidden">
-    <div class="modal-card wide-modal">
-      <button class="modal-close" data-close="recipeModal">×</button>
-      <p class="eyebrow">KITCHEN KNOWLEDGE</p>
-      <h2>Recipe book</h2>
-      <p>Recipes and their required kitchen instructions.</p>
-      <div id="recipeList" class="recipe-list"></div>
-    </div>
-  </section>
-
-  <!-- INVENTORY -->
-  <section id="inventoryModal" class="modal-overlay hidden">
-    <div class="modal-card">
-      <button class="modal-close" data-close="inventoryModal">×</button>
-      <p class="eyebrow">RESTAURANT MANAGEMENT</p>
-      <h2>Inventory</h2>
-      <div id="inventoryContent"></div>
-      <button id="buyIngredientsButton" class="primary-button full-button">BUY INGREDIENTS — R50</button>
-    </div>
-  </section>
-
-  <!-- UPGRADES -->
-  <section id="upgradeModal" class="modal-overlay hidden">
-    <div class="modal-card wide-modal">
-      <button class="modal-close" data-close="upgradeModal">×</button>
-      <p class="eyebrow">RESTAURANT DEVELOPMENT</p>
-      <h2>Kitchen upgrades</h2>
-      <div id="upgradeList" class="upgrade-list"></div>
-    </div>
-  </section>
-
-  <!-- PAUSE -->
-  <section id="pauseModal" class="modal-overlay hidden">
-    <div class="modal-card pause-card">
-      <p class="eyebrow">TAKE A BREATH</p>
-      <h2>Kitchen paused</h2>
-      <p>Your restaurant is waiting for you.</p>
-      <button id="continueButton" class="primary-button full-button">CONTINUE</button>
-      <button id="pauseSaveButton" class="secondary-button full-button">SAVE GAME</button>
-      <button id="pauseSettingsButton" class="secondary-button full-button">SETTINGS</button>
-      <button id="returnMenuButton" class="text-button full-button">MAIN MENU</button>
-    </div>
-  </section>
-
-  <!-- END OF DAY REPORT -->
-  <section id="reportModal" class="modal-overlay hidden">
-    <div class="modal-card report-card">
-      <p class="eyebrow">ANOTHER DAY IN THE HIVE</p>
-      <h2 id="reportTitle">Day 1 complete!</h2>
-      <p id="reportSubtitle">Your kitchen has closed for the day.</p>
-      <div id="reportContent"></div>
-      <button id="nextDayButton" class="primary-button full-button">OPEN NEXT DAY →</button>
-    </div>
-  </section>
-
-  <!-- NOTIFICATIONS -->
-  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
-
+    <script src="js/game.js"></script>
 </body>
 </html>
