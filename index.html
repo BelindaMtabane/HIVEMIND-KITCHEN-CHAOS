@@ -19,17 +19,17 @@
             <h1>HIVEMIND</h1>
             <h2>Kitchen Harmony</h2>
             <p class="menu-description">
-                Build harmony in your kitchen. Lead your staff.
-                Prepare every order. Keep your customers happy.
+                Build harmony in your restaurant. Manage your departments.
+                Keep the customers happy and the kitchen moving!
             </p>
             <button id="newGameButton" class="primary-button">NEW RESTAURANT</button>
             <button id="resumeButton" class="secondary-button">CONTINUE RESTAURANT</button>
             <button id="menuSettingsButton" class="secondary-button">SETTINGS</button>
-            <p class="menu-footer">A continuous 30-day restaurant experience</p>
+            <p class="menu-footer">30 days. One growing restaurant. Endless kitchen chaos.</p>
         </div>
     </section>
 
-    <!-- GAME -->
+    <!-- MAIN GAME -->
     <section id="gameScreen" class="screen hidden">
 
         <!-- TOP HUD -->
@@ -53,8 +53,8 @@
             </div>
 
             <div class="hud-stat">
-                <span>COINS</span>
-                <strong id="moneyDisplay">500</strong>
+                <span>MONEY</span>
+                <strong id="moneyDisplay">R500</strong>
             </div>
 
             <div class="hud-stat">
@@ -75,117 +75,251 @@
             <button id="pauseButton" class="pause-button" title="Pause game">Ⅱ</button>
         </header>
 
-        <!-- GAMEPLAY LAYOUT -->
+        <!-- MAIN RESTAURANT GAMEPLAY -->
         <main class="game-layout">
 
-            <!-- LEFT CUSTOMER PANEL -->
+            <!-- LEFT: DINING AREA AND CUSTOMER ORDERS -->
             <aside class="orders-panel">
+
                 <div class="panel-heading">
                     <div>
-                        <p class="eyebrow">FRONT OF HOUSE</p>
+                        <p class="eyebrow">DINING ROOM</p>
                         <h2>Customer Orders</h2>
                     </div>
                     <span id="orderCount" class="count-pill">0</span>
                 </div>
 
+                <!-- DAILY TARGET -->
                 <div class="daily-target">
                     <div class="target-heading">
                         <span>DAILY SUCCESS TARGET</span>
                         <strong id="targetDisplay">0 / 0</strong>
                     </div>
+
                     <div class="target-track">
                         <div id="targetProgress" class="target-progress"></div>
                     </div>
+
                     <small id="targetExplanation">
-                        Today's target and two extra customers.
+                        Complete today's target and serve the extra customers.
                     </small>
                 </div>
 
+                <!-- CUSTOMER ARRIVAL STATUS -->
+                <div class="arrival-status">
+                    <span class="live-indicator"></span>
+                    <div>
+                        <strong>RESTAURANT OPEN</strong>
+                        <small id="arrivalStatus">Waiting for the first customer...</small>
+                    </div>
+                </div>
+
+                <!-- CUSTOMER ORDER LIST -->
                 <div class="order-instruction">
                     <span class="instruction-dot"></span>
-                    Select a kitchen NPC, then select a customer order.
+                    Assign reception to register customers. Follow each meal through the kitchen.
                 </div>
 
                 <div id="orderList" class="order-list">
                     <div class="empty-message">Waiting for customers...</div>
                 </div>
 
-                <div class="front-house-status">
-                    <h3>FRONT OF HOUSE</h3>
-
-                    <div class="foh-person">
-                        <span class="foh-icon receptionist-icon">B</span>
+                <!-- FRONT OF HOUSE MANAGEMENT -->
+                <section class="front-house-status">
+                    <div class="department-heading">
                         <div>
+                            <p class="eyebrow">FRONT OF HOUSE</p>
+                            <h3>Customer Service</h3>
+                        </div>
+                        <span class="department-count">2 STAFF</span>
+                    </div>
+
+                    <!-- RECEPTIONIST -->
+                    <div class="foh-person">
+                        <div class="foh-avatar receptionist-icon">B</div>
+
+                        <div class="foh-person-info">
                             <strong>Bella</strong>
                             <small>Receptionist</small>
+                            <span id="bellaStatus" class="status-tag">READY</span>
                         </div>
-                        <span id="bellaStatus" class="status-tag">READY</span>
+
+                        <button id="assignReceptionButton" class="assign-button">
+                            ASSIGN
+                        </button>
                     </div>
 
+                    <!-- WAITER -->
                     <div class="foh-person">
-                        <span class="foh-icon waiter-icon">M</span>
-                        <div>
+                        <div class="foh-avatar waiter-icon">M</div>
+
+                        <div class="foh-person-info">
                             <strong>Marcus</strong>
                             <small>Waiter</small>
+                            <span id="marcusStatus" class="status-tag">READY</span>
                         </div>
-                        <span id="marcusStatus" class="status-tag">READY</span>
+
+                        <button id="assignWaiterButton" class="assign-button">
+                            ASSIGN
+                        </button>
                     </div>
-                </div>
+
+                    <p class="management-note">
+                        Reception registers new customers. The waiter serves completed meals.
+                    </p>
+                </section>
             </aside>
 
-            <!-- TOP-DOWN KITCHEN -->
+            <!-- RIGHT: FULL RESTAURANT AND KITCHEN -->
             <section class="kitchen-panel">
+
                 <div class="kitchen-toolbar">
                     <div>
-                        <p class="eyebrow">RESTAURANT FLOOR</p>
-                        <h2>Commercial Kitchen</h2>
+                        <p class="eyebrow">YOUR RESTAURANT</p>
+                        <h2>Restaurant Floor</h2>
                     </div>
 
                     <div class="kitchen-toolbar-right">
                         <span id="selectedStaffLabel">No staff selected</span>
-                        <span class="live-indicator">LIVE KITCHEN</span>
+                        <span class="live-indicator">LIVE RESTAURANT</span>
                     </div>
                 </div>
 
+                <!-- LARGE RESTAURANT VISUAL -->
                 <div class="kitchen-viewport">
-                    <canvas id="kitchenCanvas" width="1200" height="760">
-                        Your browser does not support the kitchen display.
+
+                    <canvas id="kitchenCanvas" width="1600" height="900">
+                        Your browser does not support the restaurant display.
                     </canvas>
+
                     <div class="canvas-hint">
-                        Click a staff member in the kitchen to select them
+                        Select a staff member or department to manage your restaurant.
                     </div>
+
                 </div>
 
+                <!-- RESTAURANT LEGEND -->
                 <div class="kitchen-legend">
-                    <span><i class="legend-dot chef-dot"></i> Cooking</span>
+                    <span><i class="legend-dot chef-dot"></i> Kitchen staff</span>
                     <span><i class="legend-dot prep-dot"></i> Preparation</span>
                     <span><i class="legend-dot support-dot"></i> Support</span>
-                    <span><i class="legend-dot selected-dot"></i> Selected</span>
+                    <span><i class="legend-dot selected-dot"></i> Selected staff</span>
                 </div>
 
+                <!-- SELECTED STAFF DETAILS -->
                 <div class="selected-staff-bar">
+
                     <div class="selected-staff-avatar" id="selectedAvatar">?</div>
 
                     <div class="selected-staff-info">
                         <strong id="selectedStaffName">Select a staff member</strong>
-                        <small id="selectedStaffRole">Click an NPC in the kitchen to begin.</small>
+                        <small id="selectedStaffRole">
+                            Choose a staff member to view their department.
+                        </small>
                     </div>
 
                     <div class="selected-staff-task">
-                        <small>CURRENT TASK</small>
-                        <strong id="selectedStaffTask">Waiting</strong>
+                        <small>CURRENT DEPARTMENT</small>
+                        <strong id="selectedStaffTask">Unassigned</strong>
                     </div>
+
                 </div>
+
+                <!-- KITCHEN DEPARTMENT MANAGEMENT -->
+                <section class="department-management">
+
+                    <div class="department-heading">
+                        <div>
+                            <p class="eyebrow">KITCHEN OPERATIONS</p>
+                            <h3>Department Workflow</h3>
+                        </div>
+
+                        <span id="departmentStaffCount" class="department-count">
+                            4 KITCHEN STAFF
+                        </span>
+                    </div>
+
+                    <p class="department-description">
+                        Meals move through the departments in order.
+                        Assign staff to stations to keep every order moving.
+                    </p>
+
+                    <div id="departmentList" class="department-list">
+
+                        <!-- DEPARTMENT 1 -->
+                        <article class="department-card" data-department="preparation">
+                            <div class="department-number">01</div>
+                            <div class="department-icon">PREP</div>
+                            <div class="department-info">
+                                <strong>Preparation</strong>
+                                <small>Wash and prepare ingredients</small>
+                                <span id="preparationStaffStatus">No staff assigned</span>
+                            </div>
+                            <button class="department-assign-button"
+                                data-assign-department="preparation">
+                                MANAGE
+                            </button>
+                        </article>
+
+                        <!-- DEPARTMENT 2 -->
+                        <article class="department-card" data-department="cutting">
+                            <div class="department-number">02</div>
+                            <div class="department-icon">CUT</div>
+                            <div class="department-info">
+                                <strong>Cutting</strong>
+                                <small>Chop and portion ingredients</small>
+                                <span id="cuttingStaffStatus">No staff assigned</span>
+                            </div>
+                            <button class="department-assign-button"
+                                data-assign-department="cutting">
+                                MANAGE
+                            </button>
+                        </article>
+
+                        <!-- DEPARTMENT 3 -->
+                        <article class="department-card" data-department="cooking">
+                            <div class="department-number">03</div>
+                            <div class="department-icon">COOK</div>
+                            <div class="department-info">
+                                <strong>Cooking</strong>
+                                <small>Cook meals at the required station</small>
+                                <span id="cookingStaffStatus">No staff assigned</span>
+                            </div>
+                            <button class="department-assign-button"
+                                data-assign-department="cooking">
+                                MANAGE
+                            </button>
+                        </article>
+
+                        <!-- DEPARTMENT 4 -->
+                        <article class="department-card" data-department="plating">
+                            <div class="department-number">04</div>
+                            <div class="department-icon">PLATE</div>
+                            <div class="department-info">
+                                <strong>Plating</strong>
+                                <small>Finish and prepare meals for serving</small>
+                                <span id="platingStaffStatus">No staff assigned</span>
+                            </div>
+                            <button class="department-assign-button"
+                                data-assign-department="plating">
+                                MANAGE
+                            </button>
+                        </article>
+
+                    </div>
+
+                </section>
             </section>
         </main>
 
         <!-- MANAGEMENT BAR -->
         <footer class="management-bar">
+
             <div class="management-label">
                 <span class="management-symbol">✦</span>
                 <div>
                     <strong>RESTAURANT MANAGEMENT</strong>
-                    <small>Manage your kitchen resources</small>
+                    <small>Grow your restaurant</small>
                 </div>
             </div>
 
@@ -204,18 +338,20 @@
             <button id="saveButton" class="management-button">
                 <span>▣</span> Save
             </button>
+
         </footer>
     </section>
 
-    <!-- COOKING INSTRUCTION WINDOW -->
+    <!-- KITCHEN INSTRUCTION WINDOW -->
     <div id="instructionModal" class="modal hidden">
         <div class="instruction-window">
 
             <div class="modal-heading">
                 <div>
                     <p class="eyebrow">KITCHEN INSTRUCTION SYSTEM</p>
-                    <h2 id="instructionTitle">Assign a cooking task</h2>
+                    <h2 id="instructionTitle">Kitchen task</h2>
                 </div>
+
                 <button class="close-button" data-close="instructionModal">×</button>
             </div>
 
@@ -223,6 +359,7 @@
 
                 <!-- RECIPE BOOK -->
                 <section class="recipe-book">
+
                     <div class="book-header">
                         <span>RECIPE BOOK</span>
                         <strong id="recipePageDisplay">PAGE 1 / 30</strong>
@@ -253,18 +390,21 @@
                         <button id="previousRecipeButton" class="secondary-button small-button">
                             ← Previous
                         </button>
+
                         <button id="nextRecipeButton" class="secondary-button small-button">
                             Next →
                         </button>
                     </div>
+
                 </section>
 
                 <!-- TYPING AREA -->
                 <section class="typing-area">
+
                     <div class="typing-order-info">
                         <span>SELECTED ORDER</span>
                         <strong id="typingOrderName">Customer order</strong>
-                        <small id="typingStaffName">Assigned staff member</small>
+                        <small id="typingStaffName">Kitchen staff member</small>
                     </div>
 
                     <div class="typing-timer-panel">
@@ -272,6 +412,7 @@
                             <span>INSTRUCTION TIME</span>
                             <strong id="typingTimer">20.0s</strong>
                         </div>
+
                         <div class="typing-track">
                             <div id="typingProgress" class="typing-progress"></div>
                         </div>
@@ -294,55 +435,96 @@
                     <button id="submitInstructionButton" class="primary-button">
                         SUBMIT INSTRUCTION
                     </button>
+
                 </section>
             </div>
         </div>
     </div>
 
-    <!-- RECEPTIONIST AND WAITER INSTRUCTION -->
+    <!-- FRONT OF HOUSE ASSIGNMENT WINDOW -->
     <div id="frontHouseModal" class="modal hidden">
         <div class="small-modal">
 
             <div class="modal-heading">
                 <div>
-                    <p class="eyebrow">CUSTOMER SERVICE</p>
-                    <h2 id="frontHouseTitle">Welcome the customer</h2>
+                    <p class="eyebrow">FRONT OF HOUSE MANAGEMENT</p>
+                    <h2 id="frontHouseTitle">Assign staff</h2>
                 </div>
+
                 <button class="close-button" data-close="frontHouseModal">×</button>
             </div>
 
             <p id="frontHouseDescription">
-                Give your front-of-house staff an instruction.
+                Assign your receptionist or waiter to an available customer-service task.
             </p>
 
             <div class="front-house-task">
                 <span id="frontHousePerson">Bella — Receptionist</span>
                 <strong id="frontHouseExpected">
-                    Welcome the customer and confirm their table.
+                    Select a customer or task to assign.
                 </strong>
             </div>
 
-            <label for="frontHouseInput">TYPE THE INSTRUCTION</label>
-            <textarea id="frontHouseInput" placeholder="Type the instruction..."></textarea>
+            <!-- Kept for compatibility with existing JavaScript.
+                 These fields are not used for typing receptionist/waiter instructions. -->
+            <label for="frontHouseInput">ASSIGNMENT DETAILS</label>
+
+            <textarea
+                id="frontHouseInput"
+                placeholder="Assignment information..."
+                readonly
+            ></textarea>
 
             <div class="typing-timer-panel">
                 <div>
-                    <span>TIME REMAINING</span>
-                    <strong id="frontHouseTimer">15.0s</strong>
+                    <span>ASSIGNMENT STATUS</span>
+                    <strong id="frontHouseTimer">READY</strong>
                 </div>
+
                 <div class="typing-track">
                     <div id="frontHouseProgress" class="typing-progress"></div>
                 </div>
             </div>
 
-            <button id="submitFrontHouseButton" class="primary-button">SUBMIT</button>
-            <button id="skipFrontHouseButton" class="text-button">Skip instruction</button>
+            <button id="submitFrontHouseButton" class="primary-button">
+                CONFIRM ASSIGNMENT
+            </button>
+
+            <button id="skipFrontHouseButton" class="text-button">
+                CANCEL
+            </button>
+
+        </div>
+    </div>
+
+    <!-- DEPARTMENT ASSIGNMENT WINDOW -->
+    <div id="departmentModal" class="modal hidden">
+        <div class="small-modal">
+
+            <div class="modal-heading">
+                <div>
+                    <p class="eyebrow">STAFF MANAGEMENT</p>
+                    <h2 id="departmentModalTitle">Manage department</h2>
+                </div>
+
+                <button class="close-button" data-close="departmentModal">×</button>
+            </div>
+
+            <p id="departmentModalDescription">
+                Assign an available kitchen employee to this department.
+            </p>
+
+            <div id="departmentAssignmentContent" class="management-content">
+                <p>Select an available staff member.</p>
+            </div>
+
         </div>
     </div>
 
     <!-- PAUSE MENU -->
     <div id="pauseModal" class="modal hidden">
         <div class="small-modal pause-modal">
+
             <p class="eyebrow">RESTAURANT CONTROL</p>
             <h2>Game Paused</h2>
             <p>Your restaurant is temporarily paused.</p>
@@ -353,47 +535,56 @@
             <button id="pauseRecipeButton" class="secondary-button">RECIPE BOOK</button>
             <button id="pauseSettingsButton" class="secondary-button">SETTINGS</button>
             <button id="mainMenuButton" class="text-button">MAIN MENU</button>
+
         </div>
     </div>
 
     <!-- INVENTORY -->
     <div id="inventoryModal" class="modal hidden">
         <div class="small-modal management-modal">
+
             <div class="modal-heading">
                 <div>
                     <p class="eyebrow">RESTAURANT MANAGEMENT</p>
                     <h2>Ingredient Inventory</h2>
                 </div>
+
                 <button class="close-button" data-close="inventoryModal">×</button>
             </div>
 
             <div id="inventoryContent" class="management-content"></div>
+
         </div>
     </div>
 
     <!-- UPGRADES -->
     <div id="upgradeModal" class="modal hidden">
         <div class="small-modal management-modal">
+
             <div class="modal-heading">
                 <div>
                     <p class="eyebrow">RESTAURANT MANAGEMENT</p>
                     <h2>Kitchen Upgrades</h2>
                 </div>
+
                 <button class="close-button" data-close="upgradeModal">×</button>
             </div>
 
             <div id="upgradeContent" class="management-content"></div>
+
         </div>
     </div>
 
     <!-- RECIPE BOOK -->
     <div id="recipeBookModal" class="modal hidden">
         <div class="small-modal management-modal">
+
             <div class="modal-heading">
                 <div>
                     <p class="eyebrow">RESTAURANT KNOWLEDGE</p>
                     <h2>Complete Recipe Book</h2>
                 </div>
+
                 <button class="close-button" data-close="recipeBookModal">×</button>
             </div>
 
@@ -401,29 +592,35 @@
                 <button id="libraryPreviousButton" class="secondary-button small-button">
                     ← Previous
                 </button>
+
                 <span id="libraryPageDisplay">1 / 30</span>
+
                 <button id="libraryNextButton" class="secondary-button small-button">
                     Next →
                 </button>
             </div>
 
             <div id="recipeLibraryContent" class="management-content"></div>
+
         </div>
     </div>
 
     <!-- SETTINGS -->
     <div id="settingsModal" class="modal hidden">
         <div class="small-modal">
+
             <div class="modal-heading">
                 <div>
                     <p class="eyebrow">GAME PREFERENCES</p>
                     <h2>Settings</h2>
                 </div>
+
                 <button class="close-button" data-close="settingsModal">×</button>
             </div>
 
             <div class="setting-row">
                 <label for="gameSpeedInput">Game speed</label>
+
                 <select id="gameSpeedInput">
                     <option value="0.75">Relaxed</option>
                     <option value="1" selected>Normal</option>
@@ -436,13 +633,17 @@
                 <input id="soundInput" type="checkbox" checked>
             </div>
 
-            <button id="saveSettingsButton" class="primary-button">SAVE SETTINGS</button>
+            <button id="saveSettingsButton" class="primary-button">
+                SAVE SETTINGS
+            </button>
+
         </div>
     </div>
 
     <!-- DAILY PERFORMANCE -->
     <div id="reportModal" class="modal hidden">
         <div class="small-modal report-modal">
+
             <p class="eyebrow">END OF DAY REPORT</p>
             <h2 id="reportTitle">Day 1 Performance</h2>
 
@@ -451,25 +652,32 @@
                 <span>SUCCESSFUL ORDERS</span>
             </div>
 
-            <div id="reportRating" class="report-rating">Restaurant performance</div>
+            <div id="reportRating" class="report-rating">
+                Restaurant performance
+            </div>
 
             <div class="report-stat-grid">
+
                 <div>
                     <span>Customers served</span>
                     <strong id="reportServed">0</strong>
                 </div>
+
                 <div>
                     <span>Customers lost</span>
                     <strong id="reportLost">0</strong>
                 </div>
+
                 <div>
                     <span>Daily target</span>
                     <strong id="reportTarget">0</strong>
                 </div>
+
                 <div>
                     <span>Extra opportunities</span>
                     <strong id="reportExtras">2</strong>
                 </div>
+
             </div>
 
             <p id="reportMessage" class="report-message"></p>
@@ -481,6 +689,7 @@
             <button id="reportMenuButton" class="text-button">
                 SAVE AND RETURN TO MENU
             </button>
+
         </div>
     </div>
 
