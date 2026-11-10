@@ -229,4 +229,123 @@ function loadStaffSaveData(savedStaff) {
     renderStaff();
 }
 
+/* ============================================
+   HIVEMIND: KITCHEN HARMONY
+   STAFF ACTIVITY INTEGRATION
+   ============================================ */
+
+// *** Expose the existing staff collection to the simulation.
+if (typeof staffMembers !== "undefined") {
+    window.staffMembers = staffMembers;
+}
+
+// *** Add working information to each staff member.
+function initialiseStaffActivity() {
+    const members = window.staffMembers || [];
+
+    members.forEach(member => {
+        // *** Preserve existing values when available.
+        if (typeof member.status === "undefined") {
+            member.status = "Available";
+        }
+
+        if (typeof member.currentTask === "undefined") {
+            member.currentTask = null;
+        }
+
+        if (typeof member.energy === "undefined") {
+            member.energy = 100;
+        }
+
+        if (typeof member.experience === "undefined") {
+            member.experience = 0;
+        }
+    });
+
+    console.log(
+        "Staff activity ready:",
+        members.length,
+        "staff members"
+    );
+}
+
+// *** Assign a staff member to a kitchen task.
+function startStaffActivity(staffIndex, taskName) {
+    const members = window.staffMembers || [];
+    const member = members[staffIndex];
+
+    if (!member) {
+        console.warn("Staff member not found:", staffIndex);
+        return false;
+    }
+
+    if (member.status === "Working") {
+        console.warn(member.name, "is already working.");
+        return false;
+    }
+
+    if (member.energy <= 0) {
+        console.warn(member.name, "needs to rest.");
+        return false;
+    }
+
+    member.status = "Working";
+    member.currentTask = taskName;
+
+    console.log(
+        member.name,
+        "started:",
+        taskName
+    );
+
+    return true;
+}
+
+// *** Finish a task and award staff experience.
+function finishStaffActivity(staffIndex) {
+    const members = window.staffMembers || [];
+    const member = members[staffIndex];
+
+    if (!member) return;
+
+    member.status = "Available";
+    member.currentTask = null;
+    member.experience = (member.experience || 0) + 5;
+    member.energy = Math.max(0, member.energy - 5);
+
+    console.log(
+        member.name,
+        "completed a task. Experience:",
+        member.experience
+    );
+}
+
+// *** Restore staff energy.
+function restoreStaffEnergy() {
+    const members = window.staffMembers || [];
+
+    members.forEach(member => {
+        member.energy = Math.min(
+            100,
+            (member.energy || 0) + 15
+        );
+    });
+
+    console.log("Staff energy restored.");
+}
+
+// *** Make activity functions available to other scripts.
+window.StaffActivity = {
+    initialise: initialiseStaffActivity,
+    start: startStaffActivity,
+    finish: finishStaffActivity,
+    restoreEnergy: restoreStaffEnergy
+};
+
+// *** Initialise after the page loads.
+document.addEventListener("DOMContentLoaded", () => {
+    initialiseStaffActivity();
+});
+
+
 
